@@ -28,7 +28,7 @@ async function img () {
     return gulp
       .src( [ "./dist/*.jpg", "./dist/assets/*.png" ] )
       .pipe( imagemin() ) // Minify
-      .pipe( gulp.dest( "../../lib/webapp/web/assets" ) )
+      .pipe( gulp.dest( "../lib/webapp/web/assets" ) )
   }
   catch ( err ) {
     console.error( `images processing failed: ${ err }` );
@@ -42,7 +42,7 @@ async function svg () {
       .src( [ "./dist/assets/*.svg" ] )
       .pipe( imagemin() ) // Minify
       .pipe( gzip() ) // Gzip
-      .pipe( gulp.dest( "../../lib/webapp/web/assets" ) )
+      .pipe( gulp.dest( "../lib/webapp/web/assets" ) )
   }
   catch ( err ) {
     console.error( `images processing failed: ${ err }` );
@@ -55,7 +55,7 @@ async function ico () {
     return gulp
       .src( [ "./dist/*.ico" ] )
       .pipe( imagemin() ) // Minify
-      .pipe( gulp.dest( "../../lib/webapp/web" ) )
+      .pipe( gulp.dest( "../lib/webapp/web" ) )
   }
   catch ( err ) {
     console.error( `images processing failed: ${ err }` );
@@ -69,7 +69,7 @@ async function css () {
       .src( "./dist/assets/*.css" )
       .pipe( cleancss() ) // Minify
       .pipe( gzip() ) // Gzip
-      .pipe( gulp.dest( "../../lib/webapp/web/assets" ) )
+      .pipe( gulp.dest( "../lib/webapp/web/assets" ) )
   }
   catch ( err ) {
     console.error( `css processing failed: ${ err }` );
@@ -86,7 +86,7 @@ async function js () {
       .src( [ "./dist/assets/*.js" ] )
       .pipe( uglify() ) // Minify
       .pipe( gzip() ) // Gzip
-      .pipe( gulp.dest( "../../lib/webapp/web/assets" ) )
+      .pipe( gulp.dest( "../lib/webapp/web/assets" ) )
   }
   catch ( err ) {
     console.error( `javascript processing failed: ${ err }` );
@@ -108,7 +108,7 @@ async function html () {
         minifyURLs: true
       } ) )
       .pipe( gzip() ) // Gzip html files
-      .pipe( gulp.dest( "../../lib/webapp/web" ) )
+      .pipe( gulp.dest( "../lib/webapp/web" ) )
   }
   catch ( err ) {
     console.error( `html processing failed: ${ err }` );
