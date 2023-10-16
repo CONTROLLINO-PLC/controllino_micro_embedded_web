@@ -1,0 +1,53 @@
+{
+  "name": "neo_web_server",
+  "private": true,
+  "version": "1.0.0",
+  "author": "CONTROLLINO firmware team",
+  "description": "Embedded web server to manage CONTROLLINO NEO boards",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CONTROLLINO-PLC/CONTROLLINO_NEO_web"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node ./src/Dev_mode.js && vite",
+    "build": "vite build && gulp build",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.14.5",
+    "@mui/icons-material": "^5.11.11",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-scripts": "5.0.1",
+    "browser-sync": "^2.27.9",
+    "chart.js": "^4.2.1",
+    "fontsource-roboto": "^4.0.0",
+    "gulp": "^4.0.2",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-gzip": "^1.4.2",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-imagemin": "^7.0.0",
+    "gulp-uglify-es": "^3.0.0",
+    "jstransformer-highlight": "^2.0.0",
+    "jstransformer-markdown-it": "^2.1.0",
+    "nodejs-websocket": "^1.7.2",
+    "websocket": "^1.0.34"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "vite": "^4.4.5"
+  }
+}
