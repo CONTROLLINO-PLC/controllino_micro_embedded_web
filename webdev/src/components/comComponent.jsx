@@ -36,7 +36,7 @@ const ComComponent = (props) => {
 
   useEffect(() => {
     if (!props.data) return;
-    //setSerials(JSON.parse(props.data)[0].serial);
+    // setSerials(JSON.parse(props.data)[0].serial);
   }, [props.data])
 
   const handleButtonClick = () => {

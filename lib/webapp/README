@@ -1,0 +1,5 @@
+# Building web
+
+``` bash
+../../tools/pack.exe web/*.gz web/*.ico web/assets/*.gz web/assets/*.png > packed_fs.c
+```

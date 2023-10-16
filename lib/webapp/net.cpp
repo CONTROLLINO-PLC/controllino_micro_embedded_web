@@ -112,7 +112,7 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
     struct mg_ws_message* wm = (struct mg_ws_message*)ev_data;
 
     // Debug part of ws receive
-    // MG_INFO(("WS recv %lu %.*s", c->id, (int)wm->data.len, wm->data.ptr));
+    MG_INFO(("WS recv %lu %.*s", c->id, (int)wm->data.len, wm->data.ptr));
     
     // Heartbeat echo it back!
     if (wm->data.ptr[0] == 'h') {
