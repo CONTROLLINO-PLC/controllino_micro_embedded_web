@@ -36,16 +36,16 @@ const ComComponent = (props) => {
 
   useEffect(() => {
     if ( !props.data ) return;
-    const jsonData = JSON.parse(props.data)
+    const jsonData = JSON.parse(props.data);
     if (jsonData[0].serial != "") {
-      setSerials([...serials, jsonData[0].serial]);
+      setSerials([...serials, `recive<:::>${jsonData[0].serial}`]);
     }
   }, [props.data])
 
   const handleButtonClick = () => {
     props.onChange({ id: 'serial', value: inputValue });
-    setSerials([...serials, inputValue]);
-    setInputValue('')
+    setSerials([...serials, `send<:::>${inputValue}`]);
+    setInputValue('');
   };
 
   const handleOptionChange = (event) => {
@@ -140,7 +140,8 @@ const ComComponent = (props) => {
         fontSize: '20px',
         height: '68%',
       }}>
-        {serials.map((serial, key) => <p key={key} style={{ marginBlockStart: 0, marginBlockEnd: 2 }}>{'>_ ' + serial.replace('\\n', `\n`)}</p>)}
+        {serials.map((serial, key) => <p key={key} style={{ marginBlockStart: 0, marginBlockEnd: 2, color: serial.split("<:::>")[0] === "send" ? "yellow" : "white" }}>
+          {'>_ ' + serial.split("<:::>")[1].replace('\\n', `\n`)}</p>)}
         <p style={{ marginBlockStart: 0, marginBlockEnd: 2 }}>{'>_'}</p>
       </div>
 
