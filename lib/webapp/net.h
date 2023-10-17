@@ -25,8 +25,8 @@ extern "C" {
 #define HTTP_URL "http://0.0.0.0:80"
 #endif
 
-void web_app_init(void);
-void web_app_run(void);
+void webAppInit(void);
+void webAppRun(void);
 
 #ifdef __cplusplus
 }

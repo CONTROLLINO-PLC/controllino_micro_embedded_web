@@ -32,27 +32,30 @@ const classes = {
 const ComComponent = (props) => {
   const [inputValue, setInputValue] = useState('');
   const [serials, setSerials] = useState([]);
-  const [selectedOption, setSelectedOption] = useState('nl');
+  const [selectedOption, setSelectedOption] = useState('LF');
 
   useEffect(() => {
-    if (!props.data) return;
-    setSerials(JSON.parse(props.data)[0].serial);
+    if ( !props.data ) return;
+    const jsonData = JSON.parse(props.data)
+    if (jsonData[0].serial != "") {
+      setSerials([...serials, jsonData[0].serial]);
+    }
   }, [props.data])
 
   const handleButtonClick = () => {
-    props.onChange({ id: 'RS485', value: inputValue });
-    //setSerials([...serials, inputValue]);
+    props.onChange({ id: 'serial', value: inputValue });
+    setSerials([...serials, inputValue]);
     setInputValue('')
   };
 
   const handleOptionChange = (event) => {
     const value = event.target.value;
     setSelectedOption(value);
-    props.onChange({ id: 'terminal', value});
+    props.onChange({ id: 'terminator', value});
   };
 
   return (
-    <ItemContainer title='CAN / RS485'>
+    <ItemContainer title='CAN ( 500kbit/s ) / RS485 ( 8N1-115.2kbit/s )'>
       <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', marginBottom: 1 }}>
         <TextField
           onKeyDown={(e) => {if (e.key === 'Enter') handleButtonClick();}}
@@ -108,9 +111,9 @@ const ComComponent = (props) => {
           },
         }}
       >
-        <MenuItem value='nl'>New Line</MenuItem>
-        <MenuItem value='cr'>Carriage Return</MenuItem>
-        <MenuItem value='bnc'>Both NL & CR</MenuItem>
+        <MenuItem value='LF'>New Line</MenuItem>
+        <MenuItem value='CR'>Carriage Return</MenuItem>
+        <MenuItem value='CRLF'>Both NL & CR</MenuItem>
       </TextField>
         <Button
           variant='contained'

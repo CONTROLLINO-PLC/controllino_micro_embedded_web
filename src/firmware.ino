@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <ArduinoRS485.h>
 #include "net.h"
 
 // Board connection data
@@ -7,6 +8,59 @@ char macAddress[18];
 char ipAddress[16];
 char gateway[16];
 char subnetMask[16];
+
+// Serial configs
+String serialRx = "";
+String serialTx = "";
+typedef enum { LF, CR, CRLF } serialTerm;
+serialTerm serialTerminator = LF;
+
+// RS485
+RS485Class MicroRS485(RS485_SERIAL_PORT, RS485_DEFAULT_TX_PIN, RS485_DEFAULT_DE_PIN, RS485_DEFAULT_RE_PIN);
+// Init
+void microRS485Init() {
+  MicroRS485.begin(115200);
+  MicroRS485.receive();
+}
+// Rx
+void microRS485Rx() {
+  if (MicroRS485.available()) {
+    if (serialTerminator == LF) {
+      serialRx = MicroRS485.readStringUntil('\n');
+    }
+    else if (serialTerminator == CR) {
+      serialRx = MicroRS485.readStringUntil('\r');
+    }
+    else if (serialTerminator == CRLF) {
+      char lastc = '\n';
+      while (MicroRS485.available())
+      {
+        char c = MicroRS485.read();
+        if (c == '\n' && lastc == '\r') {
+          // Remove last \r
+          serialRx.remove(serialRx.length() - 1);
+          break;
+        }
+        serialRx += c;
+        lastc = c;
+      }
+    }
+  }
+}
+// Tx
+void microRS485Tx() {
+  if (serialTx.length() > 0) {
+    MicroRS485.noReceive();
+    MicroRS485.beginTransmission();
+    MicroRS485.print(serialTx);
+    MicroRS485.endTransmission();
+    MicroRS485.receive();
+    serialTx = "";
+  }
+}
+
+
+
 
 // Board outputs
 int outputs[8] = {
@@ -41,8 +95,8 @@ int inputs[10] = {
 #define V_12_BITS   25.798F // 12 bits 0-25.798V
 
 // Websocket handlers
-extern void handle_tx_ws(const char* data, size_t len);
-extern void handle_rx_ws(const char* data, size_t len) {
+extern void handleTxWs(const char* data, size_t len);
+extern void handleRxWs(const char* data, size_t len) {
   // Parse JSON
   DynamicJsonDocument rxjson(256);
   DeserializationError error = deserializeJson(rxjson, data, len);
@@ -86,14 +140,40 @@ extern void handle_rx_ws(const char* data, size_t len) {
       break;
     }
   }
+
+  // Serial
+  if (id == "serial") {
+    serialTx = rxjson["value"].as<String>();
+    if (serialTerminator == LF) {
+      serialTx += "\n";
+    }
+    else if (serialTerminator == CR) {
+      serialTx += "\r";
+    }
+    else if (serialTerminator == CRLF) {
+      serialTx += "\r\n";
+    }
+  }
+  else if (id == "terminator") {
+    String value = rxjson["value"];
+    if (value == "LF") {
+      serialTerminator = LF;
+    }
+    else if (value == "CR") {
+      serialTerminator = CR;
+    }
+    else if (value == "CRLF") {
+      serialTerminator = CRLF;
+    }
+  }
 }
 
 // Update data over websocket
-extern void update_data_ws(void) {
+extern void updateDataWs(void) {
   // Update data
   DynamicJsonDocument txJson(1024);
   JsonArray data = txJson.to<JsonArray>();
-  data[0]["serial"] = "";
+  data[0]["serial"] = serialRx.c_str(); 
   data[1]["tmcu"] = readBoardTemperature();
   data[1]["vsply"] = (float)readVoltageSuply() / 1000.0F;
   data[1]["tsens"] = readBoardTemperature();
@@ -129,7 +209,10 @@ extern void update_data_ws(void) {
   size_t docSize = measureJson(data);
   char wsWriter[docSize];
   serializeJson(data, &wsWriter, docSize);
-  handle_tx_ws((const char *)&wsWriter, docSize);
+  handleTxWs((const char*)&wsWriter, docSize);
+
+  // Clear rx serial buffer
+  serialRx = "";
 }
 
 void setup() {
@@ -148,10 +231,19 @@ void setup() {
     pinMode(outputs[i], OUTPUT);
   }
 
+  // Init Serial
+  microRS485Init();
+
   // Initialize app server
-  web_app_init();
+  webAppInit();
 }
 
 void loop() {
-  web_app_run();
+  webAppRun();
+
+  // Read serial data
+  microRS485Rx();
+
+  // Write serial data
+  microRS485Tx();
 }

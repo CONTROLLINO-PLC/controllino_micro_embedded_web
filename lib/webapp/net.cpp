@@ -69,10 +69,10 @@ static void timer_sntp_fn(void* param) {  // SNTP timer function. Sync up time
 }
 
 // Websocket handlers
-extern void handle_rx_ws(const char* data, size_t len);
-extern void update_data_ws(void);
+extern void handleRxWs(const char* data, size_t len);
+extern void updateDataWs(void);
 mg_connection* ws_conn = NULL;
-extern void handle_tx_ws(const char* data, size_t len) {
+extern void handleTxWs(const char* data, size_t len) {
   if (ws_conn != NULL) {
     // Debug part of ws send
     // MG_INFO(("WS send %lu %.*s...", ws_conn->id, (int)len / 8, data));
@@ -121,10 +121,10 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
     else if (wm->data.ptr[0] == 'd') {
       // Update current websocket connection and update data
       ws_conn = c;
-      update_data_ws();
+      updateDataWs();
     }
     else {
-      handle_rx_ws(wm->data.ptr, wm->data.len);
+      handleRxWs(wm->data.ptr, wm->data.len);
     }
 
     mg_iobuf_del(&c->recv, 0, c->recv.len);
@@ -144,7 +144,7 @@ void web_init(struct mg_mgr* mgr) {
 }
 
 /* Init Web application */
-void web_app_init()
+void webAppInit()
 {
   // Setup SPI
   pinMode(SS_PIN, OUTPUT);
@@ -193,7 +193,7 @@ void web_app_init()
   web_init(&mgr);
 }
 
-void web_app_run()
+void webAppRun()
 {
   mg_mgr_poll(&mgr, 1);
 }
