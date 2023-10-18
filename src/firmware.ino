@@ -17,11 +17,13 @@ serialTerm serialTerminator = LF;
 
 // RS485
 RS485Class MicroRS485(RS485_SERIAL_PORT, RS485_DEFAULT_TX_PIN, RS485_DEFAULT_DE_PIN, RS485_DEFAULT_RE_PIN);
+
 // Init
 void microRS485Init() {
   MicroRS485.begin(115200);
   MicroRS485.receive();
 }
+
 // Rx
 void microRS485Rx() {
   if (MicroRS485.available()) {
@@ -47,6 +49,7 @@ void microRS485Rx() {
     }
   }
 }
+
 // Tx
 void microRS485Tx() {
   if (serialTx.length() > 0) {
@@ -58,9 +61,6 @@ void microRS485Tx() {
     serialTx = "";
   }
 }
-
-
-
 
 // Board outputs
 int outputs[8] = {
