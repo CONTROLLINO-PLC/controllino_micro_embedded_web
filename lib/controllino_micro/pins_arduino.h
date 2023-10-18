@@ -197,9 +197,9 @@ static const uint8_t CONTROLLINO_MICRO_DI2 = (58u);
 static const uint8_t CONTROLLINO_MICRO_DI3 = (59u);
 
 /* Digital outputs connected to RP2040 */
-static const uint8_t CONTROLLINO_MICRO_DO0 = (5u);
-static const uint8_t CONTROLLINO_MICRO_DO1 = (6u);
-static const uint8_t CONTROLLINO_MICRO_DO2 = (7u);
+static const uint8_t CONTROLLINO_MICRO_DO0 = (13u);
+static const uint8_t CONTROLLINO_MICRO_DO1 = (14u);
+static const uint8_t CONTROLLINO_MICRO_DO2 = (15u);
 static const uint8_t CONTROLLINO_MICRO_DO3 = (20u);
 static const uint8_t CONTROLLINO_MICRO_DO4 = (21u);
 static const uint8_t CONTROLLINO_MICRO_DO5 = (22u);

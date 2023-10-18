@@ -18,9 +18,9 @@ mcp4461_t*      dev_mcp4461_1 = nullptr;
  
 /* Other pins used on internal components */
 extern const uint8_t _CY8C9520_INT_PIN =    (4u);
-extern const uint8_t _MCP3564_INT_PIN =     (13u);
-extern const uint8_t _MCP3564_CS_PIN =      (14u);
-extern const uint8_t _W5500_INT_PIN =       (15u);
+extern const uint8_t _MCP3564_INT_PIN =     (5u);
+extern const uint8_t _MCP3564_CS_PIN =      (6u);
+extern const uint8_t _W5500_INT_PIN =       (7u);
  
 /**
  * Arduino-pico variant initialization
