@@ -21,9 +21,11 @@ function FormBoard(props) {
         <Grid item xs={12} sm={12} md={6} lg={5} xl={2.4} style={{
           display: 'flex',
           justifyContent: 'center',
+          marginTop: 170,
+          marginBottom: 90,
         }}>
           <div style={{ position: 'relative', transform: 'rotate(90deg)' }} >
-            <img src={Board} alt='logo' width={728}/>
+            <img src={Board} alt='logo' width={728} />
 
             <div style={{ position: 'absolute', left: 430, top: 212, transform: 'rotate(-90deg)'}}>
               <LedOutput data={props.data} />
