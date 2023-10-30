@@ -1,6 +1,6 @@
-# Web development proyect running on ESP32
+# Web development proyect running on rp2040
 
-The project is developed on react js, gulp and platformIO to automatically create the necessary header files to run on a web server on the ESP32
+The project is developed on react js, gulp and platformIO to automatically create the necessary header files to run on a web server on the rp2040
 
 ## requirements
 
@@ -12,7 +12,7 @@ The project is developed on react js, gulp and platformIO to automatically creat
 ## Getting started
 
 ``` bash
-git clone https://github.com/CONTROLLINO-PLC/CONTROLLINO_NEO_web.git
+git clone https://github.com/CONTROLLINO-PLC/micro_embedded_web
 ```
 
 ## Install dependencies
@@ -22,13 +22,23 @@ pip install -U platformio
 ```
 
 ``` bash
-cd CONTROLLINO_NEO_web/webdev/stepper
+cd micro_embedded_web/webdev
 ```
 
 ``` bash
 npm install
 ```
+### Start on dev mode
 
-## Finally
+``` bash
+npm run dev
+```
 
-Now you can develop your project in react js and when executing the "npm run build" command, a series of scripts are automatically executed that end up uploading the compilation to ESP32.
+### build an SPA 
+
+``` bash 
+npm run build
+```
+
+## React Components 
+
