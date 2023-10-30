@@ -31,7 +31,7 @@ function FormBoard(props) {
               <LedOutput data={props.data} />
             </div>
 
-            <div style={{ position: 'absolute', left: 378, top: 170, transform: 'rotate(90deg)'}}>
+            <div style={{ position: 'absolute', left: 378, top: 169, transform: 'rotate(90deg)'}}>
               <NetworkLeds data={props.data} />
             </div>
 

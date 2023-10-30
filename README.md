@@ -112,7 +112,7 @@ npm run build
     - ubication: 
         - [webdev/src/components/TmcuCard.jsx](webdev/src/components/TmcuCard.jsx)
         - [webdev/src/components/TsensorCard.jsx](webdev/src/components/TsensorCard.jsx)
-        - [webdev/src/components/VsupplyCard.jsx](webdev/src/components/VsupplyCard.jsx)
+        - [webdev/src/components/VsupplyCard.jsx](webdev/src/components/VsuplyCard.jsx)
     - used in:
         - Home
 
