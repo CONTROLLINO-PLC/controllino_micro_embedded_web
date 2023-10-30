@@ -45,35 +45,35 @@ npm run build
 - Login
     -
     - description: Component to get access to the dashboard using user credentials
-    - ubication: webdev/src/components/Login.jsx
+    - ubication: [webdev/src/components/Login.jsx](webdev/src/components/Login.jsx)
     - used in:
         - App
 
 - Home
     -
     - description: Display all components
-    - ubication: webdev/src/components/Home.jsx
+    - ubication: [webdev/src/components/Home.jsx](webdev/src/components/Home.jsx)
     - used in:
         - App
 
 - Navbar
     -
     - description: Header of the web app and render some features as logout
-    - ubication: webdev/src/components/Navbar.jsx
+    - ubication: [webdev/src/components/Navbar.jsx](webdev/src/components/Navbar.jsx)
     - used in:
         - Home
 
 - FormComms
     -
     - description: Form to manage the network of the controllino
-    - ubication: webdev/src/components/FormComms.jsx
+    - ubication: [webdev/src/components/FormComms.jsx](webdev/src/components/FormComms.jsx)
     - used in:
         - Home
 
 - FormBoard
     -
     - description: Container of the comonents displayed
-    - ubication: webdev/src/components/FormBoard.jsx
+    - ubication: [webdev/src/components/FormBoard.jsx](webdev/src/components/FormBoard.jsx)
     - used in:
         - Home
 
@@ -81,15 +81,15 @@ npm run build
     -
     - description: Set and display the controllino Inputs Outputs and serial comunications
     - ubication: 
-        - webdev/src/components/comComponen.jsx
-        - webdev/src/components/Inputs.jsx
-        - webdev/src/components/Outputs.jsx
+        - [webdev/src/components/comComponen.jsx](webdev/src/components/comComponen.jsx)
+        - [webdev/src/components/Inputs.jsx](webdev/src/components/Inputs.jsx)
+        - [webdev/src/components/Outputs.jsx](webdev/src/components/Outputs.jsx)
     - used in:       
         - FormBoard
 
 - ItemContainer
     - description: Abstraction layer to display the board elements
-    - ubication: webdev/src/components/ItemContainer.jsx
+    - ubication: [webdev/src/components/ItemContainer.jsx](webdev/src/components/ItemContainer.jsx)
     - used in:
         - Inputs
         - Outputs
@@ -99,9 +99,9 @@ npm run build
     -
     - description: Component to display the states of the controllino network, input and output pins
     - ubication: 
-        - webdev/src/components/LedInputs.jsx
-        - webdev/src/components/LedOutput.jsx
-        - webdev/src/components/networkLeds.jsx
+        - [webdev/src/components/LedInputs.jsx](webdev/src/components/LedInputs.jsx)
+        - [webdev/src/components/LedOutput.jsx](webdev/src/components/LedOutput.jsx)
+        - [webdev/src/components/networkLeds.jsx](webdev/src/components/networkLeds.jsx)
     - used in:
         - FormBoard
 
@@ -110,9 +110,9 @@ npm run build
     -
     - description: Display some controllino paramethers like power supply
     - ubication: 
-        - webdev/src/components/TmcuCard.jsx
-        - webdev/src/components/TsensorCard.jsx
-        - webdev/src/components/VsupplyCard.jsx
+        - [webdev/src/components/TmcuCard.jsx](webdev/src/components/TmcuCard.jsx)
+        - [webdev/src/components/TsensorCard.jsx](webdev/src/components/TsensorCard.jsx)
+        - [webdev/src/components/VsupplyCard.jsx](webdev/src/components/VsupplyCard.jsx)
     - used in:
         - Home
 
