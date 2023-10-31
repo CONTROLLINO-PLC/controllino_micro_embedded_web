@@ -1,4 +1,4 @@
-# Embbeded web app to test Controllino Micro main features
+# Embbeded web to test Controllino Micro features
 
 The project tries provide a easy to set tool to test the main features of the Controllino Micro board also serving as a template to develop other web embedded apps.
 
