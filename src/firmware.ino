@@ -1,7 +1,20 @@
+/*
+ * Copyright (c) 2023 CONTROLLINO GmbH.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <ArduinoRS485.h>
 #include "net.h"
+
+#ifdef CONTROLLINO_MICRO_RS485
+#include <ArduinoRS485.h>
+#endif
+
+#ifdef CONTROLLINO_MICRO_CAN
+#include <CAN.h>
+#endif
 
 // Board connection data
 char macAddress[18];
@@ -15,29 +28,29 @@ String serialTx = "";
 typedef enum { LF, CR, CRLF } serialTerm;
 serialTerm serialTerminator = LF;
 
-// RS485
-RS485Class MicroRS485(RS485_SERIAL_PORT, RS485_DEFAULT_TX_PIN, RS485_DEFAULT_DE_PIN, RS485_DEFAULT_RE_PIN);
-
+#ifdef CONTROLLINO_MICRO_RS485
 // Init
 void microRS485Init() {
-  MicroRS485.begin(115200);
-  MicroRS485.receive();
+  Serial2.setTX(PIN_SERIAL2_TX);
+  Serial2.setRX(PIN_SERIAL2_RX);
+  RS485.begin(115200);
+  RS485.receive();
 }
 
 // Rx
 void microRS485Rx() {
-  if (MicroRS485.available()) {
+  if (RS485.available()) {
     if (serialTerminator == LF) {
-      serialRx = MicroRS485.readStringUntil('\n');
+      serialRx += RS485.readStringUntil('\n');
     }
     else if (serialTerminator == CR) {
-      serialRx = MicroRS485.readStringUntil('\r');
+      serialRx += RS485.readStringUntil('\r');
     }
     else if (serialTerminator == CRLF) {
       char lastc = '\n';
-      while (MicroRS485.available())
+      while (RS485.available())
       {
-        char c = MicroRS485.read();
+        char c = RS485.read();
         if (c == '\n' && lastc == '\r') {
           // Remove last \r
           serialRx.remove(serialRx.length() - 1);
@@ -53,14 +66,73 @@ void microRS485Rx() {
 // Tx
 void microRS485Tx() {
   if (serialTx.length() > 0) {
-    MicroRS485.noReceive();
-    MicroRS485.beginTransmission();
-    MicroRS485.print(serialTx);
-    MicroRS485.endTransmission();
-    MicroRS485.receive();
+    RS485.noReceive();
+    RS485.beginTransmission();
+    RS485.print(serialTx);
+    RS485.endTransmission();
+    RS485.receive();
     serialTx = "";
   }
 }
+#endif
+
+#ifdef CONTROLLINO_MICRO_CAN
+#define CAN_ID 0x15
+// Init
+void microCANInit() {
+  SPI1.setRX(PIN_SPI1_MISO);
+  SPI1.setTX(PIN_SPI1_MOSI);
+  SPI1.setSCK(PIN_SPI1_SCK);
+  if (!CAN.begin(500E3)) {
+    Serial.println("Starting CAN failed!");
+    while (1);
+  }
+}
+
+// Rx
+// Format 0xID/RTR or 0xID/DATA
+void microCANRx() {
+  int packetSize = CAN.parsePacket();
+  long packetId = CAN.packetId();
+  if (packetSize || packetId != -1) {
+    if (!CAN.packetRtr()) {
+      if (CAN.available()) {
+        if (serialTerminator == LF) {
+          serialRx += CAN.readStringUntil('\n');
+        }
+        else if (serialTerminator == CR) {
+          serialRx +=  CAN.readStringUntil('\r');
+        }
+        else if (serialTerminator == CRLF) {
+          char lastc = '\n';
+          while (CAN.available())
+          {
+            char c = CAN.read();
+            if (c == '\n' && lastc == '\r') {
+              // Remove last \r
+              serialRx.remove(serialRx.length() - 1);
+              break;
+            }
+            serialRx += c;
+            lastc = c;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Tx
+void microCANTx() {
+  if (serialTx.length() > 0) {
+    CAN.flush();
+    CAN.beginPacket(CAN_ID);
+    CAN.print(serialTx);
+    CAN.endPacket();
+    serialTx = "";
+  }
+}
+#endif
 
 // Board outputs
 int outputs[8] = {
@@ -218,8 +290,8 @@ extern void updateDataWs(void) {
 void setup() {
   // Initialize serial port
   Serial.begin(115200);
-  while (!Serial);
-  delay(2000);
+  // while (!Serial);
+  // delay(2000);
 
   // Init inputs
   for (int i = 0; i < 10; i++) {
@@ -232,7 +304,12 @@ void setup() {
   }
 
   // Init Serial
+#ifdef CONTROLLINO_MICRO_RS485
   microRS485Init();
+#endif
+#ifdef CONTROLLINO_MICRO_CAN
+  microCANInit();
+#endif
 
   // Initialize app server
   webAppInit();
@@ -241,9 +318,13 @@ void setup() {
 void loop() {
   webAppRun();
 
-  // Read serial data
+  // Read/Write serial data
+#ifdef CONTROLLINO_MICRO_RS485
   microRS485Rx();
-
-  // Write serial data
   microRS485Tx();
+#endif
+#ifdef CONTROLLINO_MICRO_CAN
+  microCANRx();
+  microCANTx();
+#endif
 }
