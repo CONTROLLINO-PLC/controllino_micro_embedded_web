@@ -1,8 +1,28 @@
 # Embbeded web to test Controllino Micro features
 
-The project tries provide a easy to set tool to test the main features of the Controllino Micro board also serving as a template to develop other web embedded apps.
+The project provides an easy to install tool to test the main features of the Controllino Micro by serving an embedded web application directly from the device, easilly accesible from any web browser.
 
 ![dashboard](images/dashboard.png)
+
+## Fast get started
+
+### Download latest firmware
+
+- Controllino Micro RS485 **.uf2** <https://github.com/CONTROLLINO-PLC/micro_embedded_web/releases/download/v1.0.0/web_micro_rs485.uf2>
+- Controllino Micro CAN **.uf2** <https://github.com/CONTROLLINO-PLC/micro_embedded_web/releases/download/v1.0.0/web_micro_can.uf2>
+
+### Upload firmware
+
+For easy installation first it is necessary to put the device in bootloader mode, to do this:
+
+- First method: Without external power press the boot button while connecting the USB cable, and then release the button.
+- Second method: Press both boot and reset buttons at the same time, then release the reset button and finally release the boot button.
+
+The board will appear as a mass storage device, copy then the **.uf2** file to the device, it will reboot and start the web server.
+
+### Connect to the web server
+
+The default IP address is **10.22.1.184** and the default user and password are **admin** and **admin** respectively so just open a browser and go to <http://10.22.1.184/> to access the web server. Enjoy!
 
 ## Tools and technologies used
 
