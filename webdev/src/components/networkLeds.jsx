@@ -7,9 +7,9 @@ const NetworkLeds = (props) => {
         count ++;
         if(count%2 === 0){
             document.getElementById('network0').style.backgroundColor = '#4DFF10';
-            document.getElementById('network1').style.backgroundColor = 'yellow';
+            document.getElementById('network1').style.backgroundColor = '#fd5608';
         }else{
-            document.getElementById('network0').style.backgroundColor = 'yellow';
+            document.getElementById('network0').style.backgroundColor = '#fd5608';
             document.getElementById('network1').style.backgroundColor = '#4DFF10';
         }
         }, [props.data])
@@ -18,7 +18,7 @@ const NetworkLeds = (props) => {
         <Box
             id={'network0'}
             key={0}
-            width={14}
+            width={15}
             height={27}
             style={{
                 backgroundColor:'grey',
@@ -28,7 +28,7 @@ const NetworkLeds = (props) => {
         <Box
             id={'network1'}
             key={1}
-            width={14}
+            width={15}
             height={27}
             style={{
                 backgroundColor:'grey',
