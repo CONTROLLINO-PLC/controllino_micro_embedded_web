@@ -1,0 +1,5 @@
+# Build pack tool from Mongoose
+
+``` bash
+gcc -o pack pack.c
+```

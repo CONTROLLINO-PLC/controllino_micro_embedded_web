@@ -1,5 +1,5 @@
-# Building web
+# Packing Web files into C source using pack tool from Mongoose
 
 ``` bash
-../../tools/pack.exe web/*.gz web/*.ico web/assets/*.gz web/assets/*.png > packed_fs.c
+../../tools/pack web/*.gz web/*.ico web/assets/*.gz web/assets/*.png > packed_fs.c
 ```
