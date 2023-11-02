@@ -43,7 +43,8 @@ The default IP address is **10.22.1.184** and the default user and password are 
 ## Web development project
 
 Developed on react js uses also gulp to automate some parts of the build process, trying to generate the minimal weight app to embed in the microcontroller.
-The final C source needs to be generated using the pack tool from mongoose.(These part still needs to be automated)
+
+On PlatformIO build [build_web.py](build_web.py) script is executed to build the web app into [lib/webapp/packed_fs.c](lib/webapp/packed_fs.c) source file that later is compiled with the firmware.
 
 ### Requirements
 
@@ -52,10 +53,10 @@ The final C source needs to be generated using the pack tool from mongoose.(Thes
 - react v18.x.x
 - Python 3.x.x
 
-### Install dependencies
+### Manual setup for web development
 
 ``` bash
-cd micro_embedded_web/webdev
+cd webdev
 ```
 
 ``` bash
@@ -67,14 +68,6 @@ npm install
 ``` bash
 npm run dev
 ```
-
-### Build for production
-
-``` bash
-npm run build
-```
-
-- Note: Generates a minimized output on **lib/webapp/web**, that serves as input for the pack tool to generate the final C source.
 
 ### React project description
 
