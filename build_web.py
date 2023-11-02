@@ -44,7 +44,7 @@ def main():
     else:
         subprocess.run(
         [
-            "../../a.out web/*.gz web/*.ico web/assets/*.gz web/assets/*.png"
+            "../../a.* web/*.gz web/*.ico web/assets/*.gz web/assets/*.png"
         ], 
         shell=True , stdout=packed_fs_file)
     packed_fs_file.close()
