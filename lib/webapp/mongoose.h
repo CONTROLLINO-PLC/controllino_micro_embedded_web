@@ -20,28 +20,28 @@
 #ifndef MONGOOSE_H
 #define MONGOOSE_H
 
-#define MG_VERSION "7.11"
+#define MG_VERSION "7.12"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-#define MG_ARCH_CUSTOM 0       // User creates its own mongoose_custom.h
-#define MG_ARCH_UNIX 1         // Linux, BSD, Mac, ...
-#define MG_ARCH_WIN32 2        // Windows
-#define MG_ARCH_ESP32 3        // ESP32
-#define MG_ARCH_ESP8266 4      // ESP8266
-#define MG_ARCH_FREERTOS 5     // FreeRTOS
-#define MG_ARCH_AZURERTOS 6    // MS Azure RTOS
-#define MG_ARCH_ZEPHYR 7       // Zephyr RTOS
-#define MG_ARCH_NEWLIB 8       // Bare metal ARM
-#define MG_ARCH_CMSIS_RTOS1 9  // CMSIS-RTOS API v1 (Keil RTX)
-#define MG_ARCH_TIRTOS 10      // Texas Semi TI-RTOS
-#define MG_ARCH_RP2040 11      // Raspberry Pi RP2040
-#define MG_ARCH_ARMCC 12       // Keil MDK-Core with Configuration Wizard
-#define MG_ARCH_CMSIS_RTOS2 13 // CMSIS-RTOS API v2 (Keil RTX5, FreeRTOS)
-#define MG_ARCH_RTTHREAD 14    // RT-Thread RTOS
+#define MG_ARCH_CUSTOM 0        // User creates its own mongoose_custom.h
+#define MG_ARCH_UNIX 1          // Linux, BSD, Mac, ...
+#define MG_ARCH_WIN32 2         // Windows
+#define MG_ARCH_ESP32 3         // ESP32
+#define MG_ARCH_ESP8266 4       // ESP8266
+#define MG_ARCH_FREERTOS 5      // FreeRTOS
+#define MG_ARCH_AZURERTOS 6     // MS Azure RTOS
+#define MG_ARCH_ZEPHYR 7        // Zephyr RTOS
+#define MG_ARCH_NEWLIB 8        // Bare metal ARM
+#define MG_ARCH_CMSIS_RTOS1 9   // CMSIS-RTOS API v1 (Keil RTX)
+#define MG_ARCH_TIRTOS 10       // Texas Semi TI-RTOS
+#define MG_ARCH_RP2040 11       // Raspberry Pi RP2040
+#define MG_ARCH_ARMCC 12        // Keil MDK-Core with Configuration Wizard
+#define MG_ARCH_CMSIS_RTOS2 13  // CMSIS-RTOS API v2 (Keil RTX5, FreeRTOS)
+#define MG_ARCH_RTTHREAD 14     // RT-Thread RTOS
 
 #if !defined(MG_ARCH)
 #if defined(__unix__) || defined(__APPLE__)
@@ -68,10 +68,16 @@ extern "C" {
 #endif
 #endif  // !defined(MG_ARCH)
 
-// if the user did not specify an MG_ARCH, or specified a custom one, OR
-// we guessed a known IDE, pull the customized config (Configuration Wizard)
+  // if the user did not specify an MG_ARCH, or specified a custom one, OR
+  // we guessed a known IDE, pull the customized config (Configuration Wizard)
 #if !defined(MG_ARCH) || (MG_ARCH == MG_ARCH_CUSTOM) || MG_ARCH == MG_ARCH_ARMCC
+#ifdef __cplusplus
+}
+#endif
 #include "mongoose_custom.h"  // keep this include
+#ifdef __cplusplus
+extern "C" {
+#endif
 #endif
 
 #if !defined(MG_ARCH)
@@ -497,6 +503,7 @@ typedef int socklen_t;
 #define realpath(a, b) _fullpath((b), (a), MG_PATH_MAX)
 #define sleep(x) Sleep((x) *1000)
 #define mkdir(a, b) _mkdir(a)
+#define timegm(x) _mkgmtime(x)
 
 #ifndef S_ISDIR
 #define S_ISDIR(x) (((x) &_S_IFMT) == _S_IFDIR)
@@ -535,8 +542,15 @@ typedef int socklen_t;
 #define strdup(s) ((char *) mg_strdup(mg_str(s)).ptr)
 #endif
 #define strerror(x) zsock_gai_strerror(x)
+
+#ifndef FD_CLOEXEC
 #define FD_CLOEXEC 0
+#endif
+
+#ifndef F_SETFD
 #define F_SETFD 0
+#endif
+
 #define MG_ENABLE_SSI 0
 
 int rand(void);
@@ -669,6 +683,10 @@ struct timeval {
 #define MG_ENABLE_LOG 1
 #endif
 
+#ifndef MG_ENABLE_CUSTOM_LOG
+#define MG_ENABLE_CUSTOM_LOG 0  // Let user define their own MG_LOG
+#endif
+
 #ifndef MG_ENABLE_TCPIP
 #define MG_ENABLE_TCPIP 0  // Mongoose built-in network stack
 #endif
@@ -707,6 +725,10 @@ struct timeval {
 
 #ifndef MG_ENABLE_IPV6
 #define MG_ENABLE_IPV6 0
+#endif
+
+#ifndef MG_IPV6_V6ONLY
+#define MG_IPV6_V6ONLY 0  // IPv6 socket binds only to V6, not V4 address
 #endif
 
 #ifndef MG_ENABLE_MD5
@@ -811,6 +833,10 @@ struct timeval {
 #define MG_EPOLL_MOD(c, wr)
 #endif
 
+#ifndef MG_ENABLE_PROFILE
+#define MG_ENABLE_PROFILE 0
+#endif
+
 
 
 
@@ -911,16 +937,23 @@ void mg_pfn_stdout(char c, void *param);  // param: ignored
 
 
 enum { MG_LL_NONE, MG_LL_ERROR, MG_LL_INFO, MG_LL_DEBUG, MG_LL_VERBOSE };
+extern int mg_log_level;  // Current log level, one of MG_LL_*
+
 void mg_log(const char *fmt, ...);
-bool mg_log_prefix(int ll, const char *file, int line, const char *fname);
-void mg_log_set(int log_level);
+void mg_log_prefix(int ll, const char *file, int line, const char *fname);
+// bool mg_log2(int ll, const char *file, int line, const char *fmt, ...);
 void mg_hexdump(const void *buf, size_t len);
 void mg_log_set_fn(mg_pfn_t fn, void *param);
 
+#define mg_log_set(level_) mg_log_level = (level_)
+
 #if MG_ENABLE_LOG
-#define MG_LOG(level, args)                                                \
-  do {                                                                     \
-    if (mg_log_prefix((level), __FILE__, __LINE__, __func__)) mg_log args; \
+#define MG_LOG(level, args)                                 \
+  do {                                                      \
+    if ((level) <= mg_log_level) {                          \
+      mg_log_prefix((level), __FILE__, __LINE__, __func__); \
+      mg_log args;                                          \
+    }                                                       \
   } while (0)
 #else
 #define MG_LOG(level, args) \
@@ -972,7 +1005,9 @@ enum { MG_FS_READ = 1, MG_FS_WRITE = 2, MG_FS_DIR = 4 };
 // stat(), write(), read() calls.
 struct mg_fs {
   int (*st)(const char *path, size_t *size, time_t *mtime);  // stat file
-  void (*ls)(const char *path, void (*fn)(const char *, void *), void *);
+  void (*ls)(const char *path, void (*fn)(const char *, void *),
+             void *);  // List directory entries: call fn(file_name, fn_data)
+                       // for each directory entry
   void *(*op)(const char *path, int flags);             // Open file
   void (*cl)(void *fd);                                 // Close file
   size_t (*rd)(void *fd, void *buf, size_t len);        // Read file
@@ -1016,6 +1051,7 @@ struct mg_str mg_unpacked(const char *path);  // Packed file as mg_str
 #define assert(x)
 #endif
 
+void mg_bzero(volatile unsigned char *buf, size_t len);
 void mg_random(void *buf, size_t len);
 char *mg_random_str(char *buf, size_t len);
 uint16_t mg_ntohs(uint16_t net);
@@ -1035,6 +1071,33 @@ uint64_t mg_now(void);     // Return milliseconds since Epoch
 #define MG_U8P(ADDR) ((uint8_t *) (ADDR))
 #define MG_IPADDR_PARTS(ADDR) \
   MG_U8P(ADDR)[0], MG_U8P(ADDR)[1], MG_U8P(ADDR)[2], MG_U8P(ADDR)[3]
+
+#define MG_REG(x) ((volatile uint32_t *) (x))[0]
+#define MG_BIT(x) (((uint32_t) 1U) << (x))
+#define MG_SET_BITS(R, CLRMASK, SETMASK) (R) = ((R) & ~(CLRMASK)) | (SETMASK)
+
+#define MG_ROUND_UP(x, a) ((a) == 0 ? (x) : ((((x) + (a) -1) / (a)) * (a)))
+#define MG_ROUND_DOWN(x, a) ((a) == 0 ? (x) : (((x) / (a)) * (a)))
+
+#ifdef __GNUC__
+#define MG_ARM_DISABLE_IRQ() asm volatile("cpsid i" : : : "memory")
+#define MG_ARM_ENABLE_IRQ() asm volatile("cpsie i" : : : "memory")
+#else
+#define MG_ARM_DISABLE_IRQ()
+#define MG_ARM_ENABLE_IRQ()
+#endif
+
+#if defined(__CC_ARM)
+#define MG_DSB() __dsb(0xf)
+#elif defined(__ARMCC_VERSION)
+#define MG_DSB() __builtin_arm_dsb(0xf)
+#elif defined(__GNUC__) && defined(__arm__) && defined(__thumb__)
+#define MG_DSB() asm("DSB 0xf")
+#elif defined(__ICCARM__)
+#define MG_DSB() __iar_builtin_DSB()
+#else
+#define MG_DSB()
+#endif
 
 struct mg_addr;
 int mg_check_ip_acl(struct mg_str acl, struct mg_addr *remote_ip);
@@ -1118,6 +1181,925 @@ void mg_sha1_update(mg_sha1_ctx *, const unsigned char *data, size_t len);
 void mg_sha1_final(unsigned char digest[20], mg_sha1_ctx *);
 
 
+
+
+typedef struct {
+  uint32_t state[8];
+  uint64_t bits;
+  uint32_t len;
+  unsigned char buffer[64];
+} mg_sha256_ctx;
+
+void mg_sha256_init(mg_sha256_ctx *);
+void mg_sha256_update(mg_sha256_ctx *, const unsigned char *data, size_t len);
+void mg_sha256_final(unsigned char digest[32], mg_sha256_ctx *);
+void mg_hmac_sha256(uint8_t dst[32], uint8_t *key, size_t keysz, uint8_t *data,
+                    size_t datasz);
+/******************************************************************************
+ *
+ * THIS SOURCE CODE IS HEREBY PLACED INTO THE PUBLIC DOMAIN FOR THE GOOD OF ALL
+ *
+ * This is a simple and straightforward implementation of the AES Rijndael
+ * 128-bit block cipher designed by Vincent Rijmen and Joan Daemen. The focus
+ * of this work was correctness & accuracy.  It is written in 'C' without any
+ * particular focus upon optimization or speed. It should be endian (memory
+ * byte order) neutral since the few places that care are handled explicitly.
+ *
+ * This implementation of Rijndael was created by Steven M. Gibson of GRC.com.
+ *
+ * It is intended for general purpose use, but was written in support of GRC's
+ * reference implementation of the SQRL (Secure Quick Reliable Login) client.
+ *
+ * See:    http://csrc.nist.gov/archive/aes/rijndael/wsdindex.html
+ *
+ * NO COPYRIGHT IS CLAIMED IN THIS WORK, HOWEVER, NEITHER IS ANY WARRANTY MADE
+ * REGARDING ITS FITNESS FOR ANY PARTICULAR PURPOSE. USE IT AT YOUR OWN RISK.
+ *
+ *******************************************************************************/
+
+#ifndef AES_HEADER
+#define AES_HEADER
+
+/******************************************************************************/
+#define AES_DECRYPTION 1  // whether AES decryption is supported
+/******************************************************************************/
+
+#define ENCRYPT 1  // specify whether we're encrypting
+#define DECRYPT 0  // or decrypting
+
+
+
+typedef unsigned char uchar;  // add some convienent shorter types
+typedef unsigned int uint;
+
+/******************************************************************************
+ *  AES_INIT_KEYGEN_TABLES : MUST be called once before any AES use
+ ******************************************************************************/
+void aes_init_keygen_tables(void);
+
+/******************************************************************************
+ *  AES_CONTEXT : cipher context / holds inter-call data
+ ******************************************************************************/
+typedef struct {
+  int mode;          // 1 for Encryption, 0 for Decryption
+  int rounds;        // keysize-based rounds count
+  uint32_t *rk;      // pointer to current round key
+  uint32_t buf[68];  // key expansion buffer
+} aes_context;
+
+/******************************************************************************
+ *  AES_SETKEY : called to expand the key for encryption or decryption
+ ******************************************************************************/
+int aes_setkey(aes_context *ctx,  // pointer to context
+               int mode,          // 1 or 0 for Encrypt/Decrypt
+               const uchar *key,  // AES input key
+               uint keysize);     // size in bytes (must be 16, 24, 32 for
+                                  // 128, 192 or 256-bit keys respectively)
+                                  // returns 0 for success
+
+/******************************************************************************
+ *  AES_CIPHER : called to encrypt or decrypt ONE 128-bit block of data
+ ******************************************************************************/
+int aes_cipher(aes_context *ctx,       // pointer to context
+               const uchar input[16],  // 128-bit block to en/decipher
+               uchar output[16]);      // 128-bit output result block
+                                       // returns 0 for success
+
+#endif /* AES_HEADER */
+/******************************************************************************
+ *
+ * THIS SOURCE CODE IS HEREBY PLACED INTO THE PUBLIC DOMAIN FOR THE GOOD OF ALL
+ *
+ * This is a simple and straightforward implementation of AES-GCM authenticated
+ * encryption. The focus of this work was correctness & accuracy. It is written
+ * in straight 'C' without any particular focus upon optimization or speed. It
+ * should be endian (memory byte order) neutral since the few places that care
+ * are handled explicitly.
+ *
+ * This implementation of AES-GCM was created by Steven M. Gibson of GRC.com.
+ *
+ * It is intended for general purpose use, but was written in support of GRC's
+ * reference implementation of the SQRL (Secure Quick Reliable Login) client.
+ *
+ * See:    http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf
+ *         http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/ \
+ *         gcm/gcm-revised-spec.pdf
+ *
+ * NO COPYRIGHT IS CLAIMED IN THIS WORK, HOWEVER, NEITHER IS ANY WARRANTY MADE
+ * REGARDING ITS FITNESS FOR ANY PARTICULAR PURPOSE. USE IT AT YOUR OWN RISK.
+ *
+ *******************************************************************************/
+#ifndef GCM_HEADER
+#define GCM_HEADER
+
+
+#define GCM_AUTH_FAILURE 0x55555555  // authentication failure
+
+/******************************************************************************
+ *  GCM_CONTEXT : GCM context / holds keytables, instance data, and AES ctx
+ ******************************************************************************/
+typedef struct {
+  int mode;             // cipher direction: encrypt/decrypt
+  uint64_t len;         // cipher data length processed so far
+  uint64_t add_len;     // total add data length
+  uint64_t HL[16];      // precalculated lo-half HTable
+  uint64_t HH[16];      // precalculated hi-half HTable
+  uchar base_ectr[16];  // first counter-mode cipher output for tag
+  uchar y[16];          // the current cipher-input IV|Counter value
+  uchar buf[16];        // buf working value
+  aes_context aes_ctx;  // cipher context used
+} gcm_context;
+
+/******************************************************************************
+ *  GCM_CONTEXT : MUST be called once before ANY use of this library
+ ******************************************************************************/
+int gcm_initialize(void);
+
+/******************************************************************************
+ *  GCM_SETKEY : sets the GCM (and AES) keying material for use
+ ******************************************************************************/
+int gcm_setkey(gcm_context *ctx,   // caller-provided context ptr
+               const uchar *key,   // pointer to cipher key
+               const uint keysize  // size in bytes (must be 16, 24, 32 for
+                                   // 128, 192 or 256-bit keys respectively)
+);                                 // returns 0 for success
+
+/******************************************************************************
+ *
+ *  GCM_CRYPT_AND_TAG
+ *
+ *  This either encrypts or decrypts the user-provided data and, either
+ *  way, generates an authentication tag of the requested length. It must be
+ *  called with a GCM context whose key has already been set with GCM_SETKEY.
+ *
+ *  The user would typically call this explicitly to ENCRYPT a buffer of data
+ *  and optional associated data, and produce its an authentication tag.
+ *
+ *  To reverse the process the user would typically call the companion
+ *  GCM_AUTH_DECRYPT function to decrypt data and verify a user-provided
+ *  authentication tag.  The GCM_AUTH_DECRYPT function calls this function
+ *  to perform its decryption and tag generation, which it then compares.
+ *
+ ******************************************************************************/
+int gcm_crypt_and_tag(
+    gcm_context *ctx,    // gcm context with key already setup
+    int mode,            // cipher direction: ENCRYPT (1) or DECRYPT (0)
+    const uchar *iv,     // pointer to the 12-byte initialization vector
+    size_t iv_len,       // byte length if the IV. should always be 12
+    const uchar *add,    // pointer to the non-ciphered additional data
+    size_t add_len,      // byte length of the additional AEAD data
+    const uchar *input,  // pointer to the cipher data source
+    uchar *output,       // pointer to the cipher data destination
+    size_t length,       // byte length of the cipher data
+    uchar *tag,          // pointer to the tag to be generated
+    size_t tag_len);     // byte length of the tag to be generated
+
+/******************************************************************************
+ *
+ *  GCM_AUTH_DECRYPT
+ *
+ *  This DECRYPTS a user-provided data buffer with optional associated data.
+ *  It then verifies a user-supplied authentication tag against the tag just
+ *  re-created during decryption to verify that the data has not been altered.
+ *
+ *  This function calls GCM_CRYPT_AND_TAG (above) to perform the decryption
+ *  and authentication tag generation.
+ *
+ ******************************************************************************/
+int gcm_auth_decrypt(
+    gcm_context *ctx,    // gcm context with key already setup
+    const uchar *iv,     // pointer to the 12-byte initialization vector
+    size_t iv_len,       // byte length if the IV. should always be 12
+    const uchar *add,    // pointer to the non-ciphered additional data
+    size_t add_len,      // byte length of the additional AEAD data
+    const uchar *input,  // pointer to the cipher data source
+    uchar *output,       // pointer to the cipher data destination
+    size_t length,       // byte length of the cipher data
+    const uchar *tag,    // pointer to the tag to be authenticated
+    size_t tag_len);     // byte length of the tag <= 16
+
+/******************************************************************************
+ *
+ *  GCM_START
+ *
+ *  Given a user-provided GCM context, this initializes it, sets the encryption
+ *  mode, and preprocesses the initialization vector and additional AEAD data.
+ *
+ ******************************************************************************/
+int gcm_start(
+    gcm_context *ctx,  // pointer to user-provided GCM context
+    int mode,          // ENCRYPT (1) or DECRYPT (0)
+    const uchar *iv,   // pointer to initialization vector
+    size_t iv_len,     // IV length in bytes (should == 12)
+    const uchar *add,  // pointer to additional AEAD data (NULL if none)
+    size_t add_len);   // length of additional AEAD data (bytes)
+
+/******************************************************************************
+ *
+ *  GCM_UPDATE
+ *
+ *  This is called once or more to process bulk plaintext or ciphertext data.
+ *  We give this some number of bytes of input and it returns the same number
+ *  of output bytes. If called multiple times (which is fine) all but the final
+ *  invocation MUST be called with length mod 16 == 0. (Only the final call can
+ *  have a partial block length of < 128 bits.)
+ *
+ ******************************************************************************/
+int gcm_update(gcm_context *ctx,    // pointer to user-provided GCM context
+               size_t length,       // length, in bytes, of data to process
+               const uchar *input,  // pointer to source data
+               uchar *output);      // pointer to destination data
+
+/******************************************************************************
+ *
+ *  GCM_FINISH
+ *
+ *  This is called once after all calls to GCM_UPDATE to finalize the GCM.
+ *  It performs the final GHASH to produce the resulting authentication TAG.
+ *
+ ******************************************************************************/
+int gcm_finish(gcm_context *ctx,  // pointer to user-provided GCM context
+               uchar *tag,        // ptr to tag buffer - NULL if tag_len = 0
+               size_t tag_len);   // length, in bytes, of the tag-receiving buf
+
+/******************************************************************************
+ *
+ *  GCM_ZERO_CTX
+ *
+ *  The GCM context contains both the GCM context and the AES context.
+ *  This includes keying and key-related material which is security-
+ *  sensitive, so it MUST be zeroed after use. This function does that.
+ *
+ ******************************************************************************/
+void gcm_zero_ctx(gcm_context *ctx);
+
+#endif /* GCM_HEADER */
+//
+//  aes-gcm.h
+//  MKo
+//
+//  Created by Markus Kosmal on 20/11/14.
+//
+//
+
+#ifndef mko_aes_gcm_h
+#define mko_aes_gcm_h
+
+int aes_gcm_encrypt(unsigned char *output, const unsigned char *input,
+                    size_t input_length, const unsigned char *key,
+                    const size_t key_len, const unsigned char *iv,
+                    const size_t iv_len, unsigned char *aead, size_t aead_len,
+                    unsigned char *tag, const size_t tag_len);
+
+int aes_gcm_decrypt(unsigned char *output, const unsigned char *input,
+                    size_t input_length, const unsigned char *key,
+                    const size_t key_len, const unsigned char *iv,
+                    const size_t iv_len);
+
+#endif
+
+// End of aes128 PD
+
+
+
+#define uECC_SUPPORTS_secp256r1 1
+/* Copyright 2014, Kenneth MacKay. Licensed under the BSD 2-clause license. */
+
+#ifndef _UECC_H_
+#define _UECC_H_
+
+/* Platform selection options.
+If uECC_PLATFORM is not defined, the code will try to guess it based on compiler
+macros. Possible values for uECC_PLATFORM are defined below: */
+#define uECC_arch_other 0
+#define uECC_x86 1
+#define uECC_x86_64 2
+#define uECC_arm 3
+#define uECC_arm_thumb 4
+#define uECC_arm_thumb2 5
+#define uECC_arm64 6
+#define uECC_avr 7
+
+/* If desired, you can define uECC_WORD_SIZE as appropriate for your platform
+(1, 4, or 8 bytes). If uECC_WORD_SIZE is not explicitly defined then it will be
+automatically set based on your platform. */
+
+/* Optimization level; trade speed for code size.
+   Larger values produce code that is faster but larger.
+   Currently supported values are 0 - 4; 0 is unusably slow for most
+   applications. Optimization level 4 currently only has an effect ARM platforms
+   where more than one curve is enabled. */
+#ifndef uECC_OPTIMIZATION_LEVEL
+#define uECC_OPTIMIZATION_LEVEL 2
+#endif
+
+/* uECC_SQUARE_FUNC - If enabled (defined as nonzero), this will cause a
+specific function to be used for (scalar) squaring instead of the generic
+multiplication function. This can make things faster somewhat faster, but
+increases the code size. */
+#ifndef uECC_SQUARE_FUNC
+#define uECC_SQUARE_FUNC 0
+#endif
+
+/* uECC_VLI_NATIVE_LITTLE_ENDIAN - If enabled (defined as nonzero), this will
+switch to native little-endian format for *all* arrays passed in and out of the
+public API. This includes public and private keys, shared secrets, signatures
+and message hashes. Using this switch reduces the amount of call stack memory
+used by uECC, since less intermediate translations are required. Note that this
+will *only* work on native little-endian processors and it will treat the
+uint8_t arrays passed into the public API as word arrays, therefore requiring
+the provided byte arrays to be word aligned on architectures that do not support
+unaligned accesses. IMPORTANT: Keys and signatures generated with
+uECC_VLI_NATIVE_LITTLE_ENDIAN=1 are incompatible with keys and signatures
+generated with uECC_VLI_NATIVE_LITTLE_ENDIAN=0; all parties must use the same
+endianness. */
+#ifndef uECC_VLI_NATIVE_LITTLE_ENDIAN
+#define uECC_VLI_NATIVE_LITTLE_ENDIAN 0
+#endif
+
+/* Curve support selection. Set to 0 to remove that curve. */
+#ifndef uECC_SUPPORTS_secp160r1
+#define uECC_SUPPORTS_secp160r1 0
+#endif
+#ifndef uECC_SUPPORTS_secp192r1
+#define uECC_SUPPORTS_secp192r1 0
+#endif
+#ifndef uECC_SUPPORTS_secp224r1
+#define uECC_SUPPORTS_secp224r1 0
+#endif
+#ifndef uECC_SUPPORTS_secp256r1
+#define uECC_SUPPORTS_secp256r1 1
+#endif
+#ifndef uECC_SUPPORTS_secp256k1
+#define uECC_SUPPORTS_secp256k1 0
+#endif
+
+/* Specifies whether compressed point format is supported.
+   Set to 0 to disable point compression/decompression functions. */
+#ifndef uECC_SUPPORT_COMPRESSED_POINT
+#define uECC_SUPPORT_COMPRESSED_POINT 1
+#endif
+
+struct uECC_Curve_t;
+typedef const struct uECC_Curve_t *uECC_Curve;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if uECC_SUPPORTS_secp160r1
+uECC_Curve uECC_secp160r1(void);
+#endif
+#if uECC_SUPPORTS_secp192r1
+uECC_Curve uECC_secp192r1(void);
+#endif
+#if uECC_SUPPORTS_secp224r1
+uECC_Curve uECC_secp224r1(void);
+#endif
+#if uECC_SUPPORTS_secp256r1
+uECC_Curve uECC_secp256r1(void);
+#endif
+#if uECC_SUPPORTS_secp256k1
+uECC_Curve uECC_secp256k1(void);
+#endif
+
+/* uECC_RNG_Function type
+The RNG function should fill 'size' random bytes into 'dest'. It should return 1
+if 'dest' was filled with random data, or 0 if the random data could not be
+generated. The filled-in values should be either truly random, or from a
+cryptographically-secure PRNG.
+
+A correctly functioning RNG function must be set (using uECC_set_rng()) before
+calling uECC_make_key() or uECC_sign().
+
+Setting a correctly functioning RNG function improves the resistance to
+side-channel attacks for uECC_shared_secret() and uECC_sign_deterministic().
+
+A correct RNG function is set by default when building for Windows, Linux, or OS
+X. If you are building on another POSIX-compliant system that supports
+/dev/random or /dev/urandom, you can define uECC_POSIX to use the predefined
+RNG. For embedded platforms there is no predefined RNG function; you must
+provide your own.
+*/
+typedef int (*uECC_RNG_Function)(uint8_t *dest, unsigned size);
+
+/* uECC_set_rng() function.
+Set the function that will be used to generate random bytes. The RNG function
+should return 1 if the random data was generated, or 0 if the random data could
+not be generated.
+
+On platforms where there is no predefined RNG function (eg embedded platforms),
+this must be called before uECC_make_key() or uECC_sign() are used.
+
+Inputs:
+    rng_function - The function that will be used to generate random bytes.
+*/
+void uECC_set_rng(uECC_RNG_Function rng_function);
+
+/* uECC_get_rng() function.
+
+Returns the function that will be used to generate random bytes.
+*/
+uECC_RNG_Function uECC_get_rng(void);
+
+/* uECC_curve_private_key_size() function.
+
+Returns the size of a private key for the curve in bytes.
+*/
+int uECC_curve_private_key_size(uECC_Curve curve);
+
+/* uECC_curve_public_key_size() function.
+
+Returns the size of a public key for the curve in bytes.
+*/
+int uECC_curve_public_key_size(uECC_Curve curve);
+
+/* uECC_make_key() function.
+Create a public/private key pair.
+
+Outputs:
+    public_key  - Will be filled in with the public key. Must be at least 2 *
+the curve size (in bytes) long. For example, if the curve is secp256r1,
+public_key must be 64 bytes long. private_key - Will be filled in with the
+private key. Must be as long as the curve order; this is typically the same as
+the curve size, except for secp160r1. For example, if the curve is secp256r1,
+private_key must be 32 bytes long.
+
+                  For secp160r1, private_key must be 21 bytes long! Note that
+the first byte will almost always be 0 (there is about a 1 in 2^80 chance of it
+being non-zero).
+
+Returns 1 if the key pair was generated successfully, 0 if an error occurred.
+*/
+int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve);
+
+/* uECC_shared_secret() function.
+Compute a shared secret given your secret key and someone else's public key. If
+the public key is not from a trusted source and has not been previously
+verified, you should verify it first using uECC_valid_public_key(). Note: It is
+recommended that you hash the result of uECC_shared_secret() before using it for
+symmetric encryption or HMAC.
+
+Inputs:
+    public_key  - The public key of the remote party.
+    private_key - Your private key.
+
+Outputs:
+    secret - Will be filled in with the shared secret value. Must be the same
+size as the curve size; for example, if the curve is secp256r1, secret must be
+32 bytes long.
+
+Returns 1 if the shared secret was generated successfully, 0 if an error
+occurred.
+*/
+int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
+                       uint8_t *secret, uECC_Curve curve);
+
+#if uECC_SUPPORT_COMPRESSED_POINT
+/* uECC_compress() function.
+Compress a public key.
+
+Inputs:
+    public_key - The public key to compress.
+
+Outputs:
+    compressed - Will be filled in with the compressed public key. Must be at
+least (curve size + 1) bytes long; for example, if the curve is secp256r1,
+                 compressed must be 33 bytes long.
+*/
+void uECC_compress(const uint8_t *public_key, uint8_t *compressed,
+                   uECC_Curve curve);
+
+/* uECC_decompress() function.
+Decompress a compressed public key.
+
+Inputs:
+    compressed - The compressed public key.
+
+Outputs:
+    public_key - Will be filled in with the decompressed public key.
+*/
+void uECC_decompress(const uint8_t *compressed, uint8_t *public_key,
+                     uECC_Curve curve);
+#endif /* uECC_SUPPORT_COMPRESSED_POINT */
+
+/* uECC_valid_public_key() function.
+Check to see if a public key is valid.
+
+Note that you are not required to check for a valid public key before using any
+other uECC functions. However, you may wish to avoid spending CPU time computing
+a shared secret or verifying a signature using an invalid public key.
+
+Inputs:
+    public_key - The public key to check.
+
+Returns 1 if the public key is valid, 0 if it is invalid.
+*/
+int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve);
+
+/* uECC_compute_public_key() function.
+Compute the corresponding public key for a private key.
+
+Inputs:
+    private_key - The private key to compute the public key for
+
+Outputs:
+    public_key - Will be filled in with the corresponding public key
+
+Returns 1 if the key was computed successfully, 0 if an error occurred.
+*/
+int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
+                            uECC_Curve curve);
+
+/* uECC_sign() function.
+Generate an ECDSA signature for a given hash value.
+
+Usage: Compute a hash of the data you wish to sign (SHA-2 is recommended) and
+pass it in to this function along with your private key.
+
+Inputs:
+    private_key  - Your private key.
+    message_hash - The hash of the message to sign.
+    hash_size    - The size of message_hash in bytes.
+
+Outputs:
+    signature - Will be filled in with the signature value. Must be at least 2 *
+curve size long. For example, if the curve is secp256r1, signature must be 64
+bytes long.
+
+Returns 1 if the signature generated successfully, 0 if an error occurred.
+*/
+int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
+              unsigned hash_size, uint8_t *signature, uECC_Curve curve);
+
+/* uECC_HashContext structure.
+This is used to pass in an arbitrary hash function to uECC_sign_deterministic().
+The structure will be used for multiple hash computations; each time a new hash
+is computed, init_hash() will be called, followed by one or more calls to
+update_hash(), and finally a call to finish_hash() to produce the resulting
+hash.
+
+The intention is that you will create a structure that includes uECC_HashContext
+followed by any hash-specific data. For example:
+
+typedef struct SHA256_HashContext {
+    uECC_HashContext uECC;
+    SHA256_CTX ctx;
+} SHA256_HashContext;
+
+void init_SHA256(uECC_HashContext *base) {
+    SHA256_HashContext *context = (SHA256_HashContext *)base;
+    SHA256_Init(&context->ctx);
+}
+
+void update_SHA256(uECC_HashContext *base,
+                   const uint8_t *message,
+                   unsigned message_size) {
+    SHA256_HashContext *context = (SHA256_HashContext *)base;
+    SHA256_Update(&context->ctx, message, message_size);
+}
+
+void finish_SHA256(uECC_HashContext *base, uint8_t *hash_result) {
+    SHA256_HashContext *context = (SHA256_HashContext *)base;
+    SHA256_Final(hash_result, &context->ctx);
+}
+
+... when signing ...
+{
+    uint8_t tmp[32 + 32 + 64];
+    SHA256_HashContext ctx = {{&init_SHA256, &update_SHA256, &finish_SHA256, 64,
+32, tmp}}; uECC_sign_deterministic(key, message_hash, &ctx.uECC, signature);
+}
+*/
+typedef struct uECC_HashContext {
+  void (*init_hash)(const struct uECC_HashContext *context);
+  void (*update_hash)(const struct uECC_HashContext *context,
+                      const uint8_t *message, unsigned message_size);
+  void (*finish_hash)(const struct uECC_HashContext *context,
+                      uint8_t *hash_result);
+  unsigned
+      block_size; /* Hash function block size in bytes, eg 64 for SHA-256. */
+  unsigned
+      result_size; /* Hash function result size in bytes, eg 32 for SHA-256. */
+  uint8_t *tmp;    /* Must point to a buffer of at least (2 * result_size +
+                      block_size) bytes. */
+} uECC_HashContext;
+
+/* uECC_sign_deterministic() function.
+Generate an ECDSA signature for a given hash value, using a deterministic
+algorithm (see RFC 6979). You do not need to set the RNG using uECC_set_rng()
+before calling this function; however, if the RNG is defined it will improve
+resistance to side-channel attacks.
+
+Usage: Compute a hash of the data you wish to sign (SHA-2 is recommended) and
+pass it to this function along with your private key and a hash context. Note
+that the message_hash does not need to be computed with the same hash function
+used by hash_context.
+
+Inputs:
+    private_key  - Your private key.
+    message_hash - The hash of the message to sign.
+    hash_size    - The size of message_hash in bytes.
+    hash_context - A hash context to use.
+
+Outputs:
+    signature - Will be filled in with the signature value.
+
+Returns 1 if the signature generated successfully, 0 if an error occurred.
+*/
+int uECC_sign_deterministic(const uint8_t *private_key,
+                            const uint8_t *message_hash, unsigned hash_size,
+                            const uECC_HashContext *hash_context,
+                            uint8_t *signature, uECC_Curve curve);
+
+/* uECC_verify() function.
+Verify an ECDSA signature.
+
+Usage: Compute the hash of the signed data using the same hash as the signer and
+pass it to this function along with the signer's public key and the signature
+values (r and s).
+
+Inputs:
+    public_key   - The signer's public key.
+    message_hash - The hash of the signed data.
+    hash_size    - The size of message_hash in bytes.
+    signature    - The signature value.
+
+Returns 1 if the signature is valid, 0 if it is invalid.
+*/
+int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
+                unsigned hash_size, const uint8_t *signature, uECC_Curve curve);
+
+#ifdef __cplusplus
+} /* end of extern "C" */
+#endif
+
+#endif /* _UECC_H_ */
+
+/* Copyright 2015, Kenneth MacKay. Licensed under the BSD 2-clause license. */
+
+#ifndef _UECC_VLI_H_
+#define _UECC_VLI_H_
+
+//
+//
+
+/* Functions for raw large-integer manipulation. These are only available
+   if uECC.c is compiled with uECC_ENABLE_VLI_API defined to 1. */
+#ifndef uECC_ENABLE_VLI_API
+#define uECC_ENABLE_VLI_API 0
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if uECC_ENABLE_VLI_API
+
+void uECC_vli_clear(uECC_word_t *vli, wordcount_t num_words);
+
+/* Constant-time comparison to zero - secure way to compare long integers */
+/* Returns 1 if vli == 0, 0 otherwise. */
+uECC_word_t uECC_vli_isZero(const uECC_word_t *vli, wordcount_t num_words);
+
+/* Returns nonzero if bit 'bit' of vli is set. */
+uECC_word_t uECC_vli_testBit(const uECC_word_t *vli, bitcount_t bit);
+
+/* Counts the number of bits required to represent vli. */
+bitcount_t uECC_vli_numBits(const uECC_word_t *vli,
+                            const wordcount_t max_words);
+
+/* Sets dest = src. */
+void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src,
+                  wordcount_t num_words);
+
+/* Constant-time comparison function - secure way to compare long integers */
+/* Returns one if left == right, zero otherwise */
+uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right,
+                           wordcount_t num_words);
+
+/* Constant-time comparison function - secure way to compare long integers */
+/* Returns sign of left - right, in constant time. */
+cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right,
+                         wordcount_t num_words);
+
+/* Computes vli = vli >> 1. */
+void uECC_vli_rshift1(uECC_word_t *vli, wordcount_t num_words);
+
+/* Computes result = left + right, returning carry. Can modify in place. */
+uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
+                         const uECC_word_t *right, wordcount_t num_words);
+
+/* Computes result = left - right, returning borrow. Can modify in place. */
+uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
+                         const uECC_word_t *right, wordcount_t num_words);
+
+/* Computes result = left * right. Result must be 2 * num_words long. */
+void uECC_vli_mult(uECC_word_t *result, const uECC_word_t *left,
+                   const uECC_word_t *right, wordcount_t num_words);
+
+/* Computes result = left^2. Result must be 2 * num_words long. */
+void uECC_vli_square(uECC_word_t *result, const uECC_word_t *left,
+                     wordcount_t num_words);
+
+/* Computes result = (left + right) % mod.
+   Assumes that left < mod and right < mod, and that result does not overlap
+   mod. */
+void uECC_vli_modAdd(uECC_word_t *result, const uECC_word_t *left,
+                     const uECC_word_t *right, const uECC_word_t *mod,
+                     wordcount_t num_words);
+
+/* Computes result = (left - right) % mod.
+   Assumes that left < mod and right < mod, and that result does not overlap
+   mod. */
+void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
+                     const uECC_word_t *right, const uECC_word_t *mod,
+                     wordcount_t num_words);
+
+/* Computes result = product % mod, where product is 2N words long.
+   Currently only designed to work for mod == curve->p or curve_n. */
+void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
+                   const uECC_word_t *mod, wordcount_t num_words);
+
+/* Calculates result = product (mod curve->p), where product is up to
+   2 * curve->num_words long. */
+void uECC_vli_mmod_fast(uECC_word_t *result, uECC_word_t *product,
+                        uECC_Curve curve);
+
+/* Computes result = (left * right) % mod.
+   Currently only designed to work for mod == curve->p or curve_n. */
+void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
+                      const uECC_word_t *right, const uECC_word_t *mod,
+                      wordcount_t num_words);
+
+/* Computes result = (left * right) % curve->p. */
+void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
+                           const uECC_word_t *right, uECC_Curve curve);
+
+/* Computes result = left^2 % mod.
+   Currently only designed to work for mod == curve->p or curve_n. */
+void uECC_vli_modSquare(uECC_word_t *result, const uECC_word_t *left,
+                        const uECC_word_t *mod, wordcount_t num_words);
+
+/* Computes result = left^2 % curve->p. */
+void uECC_vli_modSquare_fast(uECC_word_t *result, const uECC_word_t *left,
+                             uECC_Curve curve);
+
+/* Computes result = (1 / input) % mod.*/
+void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
+                     const uECC_word_t *mod, wordcount_t num_words);
+
+#if uECC_SUPPORT_COMPRESSED_POINT
+/* Calculates a = sqrt(a) (mod curve->p) */
+void uECC_vli_mod_sqrt(uECC_word_t *a, uECC_Curve curve);
+#endif
+
+/* Converts an integer in uECC native format to big-endian bytes. */
+void uECC_vli_nativeToBytes(uint8_t *bytes, int num_bytes,
+                            const uECC_word_t *native);
+/* Converts big-endian bytes to an integer in uECC native format. */
+void uECC_vli_bytesToNative(uECC_word_t *native, const uint8_t *bytes,
+                            int num_bytes);
+
+unsigned uECC_curve_num_words(uECC_Curve curve);
+unsigned uECC_curve_num_bytes(uECC_Curve curve);
+unsigned uECC_curve_num_bits(uECC_Curve curve);
+unsigned uECC_curve_num_n_words(uECC_Curve curve);
+unsigned uECC_curve_num_n_bytes(uECC_Curve curve);
+unsigned uECC_curve_num_n_bits(uECC_Curve curve);
+
+const uECC_word_t *uECC_curve_p(uECC_Curve curve);
+const uECC_word_t *uECC_curve_n(uECC_Curve curve);
+const uECC_word_t *uECC_curve_G(uECC_Curve curve);
+const uECC_word_t *uECC_curve_b(uECC_Curve curve);
+
+int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve);
+
+/* Multiplies a point by a scalar. Points are represented by the X coordinate
+   followed by the Y coordinate in the same array, both coordinates are
+   curve->num_words long. Note that scalar must be curve->num_n_words long (NOT
+   curve->num_words). */
+void uECC_point_mult(uECC_word_t *result, const uECC_word_t *point,
+                     const uECC_word_t *scalar, uECC_Curve curve);
+
+/* Generates a random integer in the range 0 < random < top.
+   Both random and top have num_words words. */
+int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
+                             wordcount_t num_words);
+
+#endif /* uECC_ENABLE_VLI_API */
+
+#ifdef __cplusplus
+} /* end of extern "C" */
+#endif
+
+#endif /* _UECC_VLI_H_ */
+
+/* Copyright 2015, Kenneth MacKay. Licensed under the BSD 2-clause license. */
+
+#ifndef _UECC_TYPES_H_
+#define _UECC_TYPES_H_
+
+#ifndef uECC_PLATFORM
+#if defined(__AVR__) && __AVR__
+#define uECC_PLATFORM uECC_avr
+#elif defined(__thumb2__) || \
+    defined(_M_ARMT) /* I think MSVC only supports Thumb-2 targets */
+#define uECC_PLATFORM uECC_arm_thumb2
+#elif defined(__thumb__)
+#define uECC_PLATFORM uECC_arm_thumb
+#elif defined(__arm__) || defined(_M_ARM)
+#define uECC_PLATFORM uECC_arm
+#elif defined(__aarch64__)
+#define uECC_PLATFORM uECC_arm64
+#elif defined(__i386__) || defined(_M_IX86) || defined(_X86_) || \
+    defined(__I86__)
+#define uECC_PLATFORM uECC_x86
+#elif defined(__amd64__) || defined(_M_X64)
+#define uECC_PLATFORM uECC_x86_64
+#else
+#define uECC_PLATFORM uECC_arch_other
+#endif
+#endif
+
+#ifndef uECC_ARM_USE_UMAAL
+#if (uECC_PLATFORM == uECC_arm) && (__ARM_ARCH >= 6)
+#define uECC_ARM_USE_UMAAL 1
+#elif (uECC_PLATFORM == uECC_arm_thumb2) && (__ARM_ARCH >= 6) && \
+    (!defined(__ARM_ARCH_7M__) || !__ARM_ARCH_7M__)
+#define uECC_ARM_USE_UMAAL 1
+#else
+#define uECC_ARM_USE_UMAAL 0
+#endif
+#endif
+
+#ifndef uECC_WORD_SIZE
+#if uECC_PLATFORM == uECC_avr
+#define uECC_WORD_SIZE 1
+#elif (uECC_PLATFORM == uECC_x86_64 || uECC_PLATFORM == uECC_arm64)
+#define uECC_WORD_SIZE 8
+#else
+#define uECC_WORD_SIZE 4
+#endif
+#endif
+
+#if (uECC_WORD_SIZE != 1) && (uECC_WORD_SIZE != 4) && (uECC_WORD_SIZE != 8)
+#error "Unsupported value for uECC_WORD_SIZE"
+#endif
+
+#if ((uECC_PLATFORM == uECC_avr) && (uECC_WORD_SIZE != 1))
+#pragma message("uECC_WORD_SIZE must be 1 for AVR")
+#undef uECC_WORD_SIZE
+#define uECC_WORD_SIZE 1
+#endif
+
+#if ((uECC_PLATFORM == uECC_arm || uECC_PLATFORM == uECC_arm_thumb || \
+      uECC_PLATFORM == uECC_arm_thumb2) &&                            \
+     (uECC_WORD_SIZE != 4))
+#pragma message("uECC_WORD_SIZE must be 4 for ARM")
+#undef uECC_WORD_SIZE
+#define uECC_WORD_SIZE 4
+#endif
+
+typedef int8_t wordcount_t;
+typedef int16_t bitcount_t;
+typedef int8_t cmpresult_t;
+
+#if (uECC_WORD_SIZE == 1)
+
+typedef uint8_t uECC_word_t;
+typedef uint16_t uECC_dword_t;
+
+#define HIGH_BIT_SET 0x80
+#define uECC_WORD_BITS 8
+#define uECC_WORD_BITS_SHIFT 3
+#define uECC_WORD_BITS_MASK 0x07
+
+#elif (uECC_WORD_SIZE == 4)
+
+typedef uint32_t uECC_word_t;
+typedef uint64_t uECC_dword_t;
+
+#define HIGH_BIT_SET 0x80000000
+#define uECC_WORD_BITS 32
+#define uECC_WORD_BITS_SHIFT 5
+#define uECC_WORD_BITS_MASK 0x01F
+
+#elif (uECC_WORD_SIZE == 8)
+
+typedef uint64_t uECC_word_t;
+
+#define HIGH_BIT_SET 0x8000000000000000U
+#define uECC_WORD_BITS 64
+#define uECC_WORD_BITS_SHIFT 6
+#define uECC_WORD_BITS_MASK 0x03F
+
+#endif /* uECC_WORD_SIZE */
+
+#endif /* _UECC_TYPES_H_ */
+// End of uecc BSD-2
+
+
 struct mg_connection;
 typedef void (*mg_event_handler_t)(struct mg_connection *, int ev,
                                    void *ev_data, void *fn_data);
@@ -1125,26 +2107,26 @@ void mg_call(struct mg_connection *c, int ev, void *ev_data);
 void mg_error(struct mg_connection *c, const char *fmt, ...);
 
 enum {
-  MG_EV_ERROR,       // Error                        char *error_message
-  MG_EV_OPEN,        // Connection created           NULL
-  MG_EV_POLL,        // mg_mgr_poll iteration        uint64_t *uptime_millis
-  MG_EV_RESOLVE,     // Host name is resolved        NULL
-  MG_EV_CONNECT,     // Connection established       NULL
-  MG_EV_ACCEPT,      // Connection accepted          NULL
-  MG_EV_TLS_HS,      // TLS handshake succeeded      NULL
-  MG_EV_READ,        // Data received from socket    long *bytes_read
-  MG_EV_WRITE,       // Data written to socket       long *bytes_written
-  MG_EV_CLOSE,       // Connection closed            NULL
-  MG_EV_HTTP_MSG,    // HTTP request/response        struct mg_http_message *
-  MG_EV_HTTP_CHUNK,  // HTTP chunk (partial msg)     struct mg_http_message *
-  MG_EV_WS_OPEN,     // Websocket handshake done     struct mg_http_message *
-  MG_EV_WS_MSG,      // Websocket msg, text or bin   struct mg_ws_message *
-  MG_EV_WS_CTL,      // Websocket control msg        struct mg_ws_message *
-  MG_EV_MQTT_CMD,    // MQTT low-level command       struct mg_mqtt_message *
-  MG_EV_MQTT_MSG,    // MQTT PUBLISH received        struct mg_mqtt_message *
-  MG_EV_MQTT_OPEN,   // MQTT CONNACK received        int *connack_status_code
-  MG_EV_SNTP_TIME,   // SNTP time received           uint64_t *epoch_millis
-  MG_EV_USER         // Starting ID for user events
+  MG_EV_ERROR,      // Error                        char *error_message
+  MG_EV_OPEN,       // Connection created           NULL
+  MG_EV_POLL,       // mg_mgr_poll iteration        uint64_t *uptime_millis
+  MG_EV_RESOLVE,    // Host name is resolved        NULL
+  MG_EV_CONNECT,    // Connection established       NULL
+  MG_EV_ACCEPT,     // Connection accepted          NULL
+  MG_EV_TLS_HS,     // TLS handshake succeeded      NULL
+  MG_EV_READ,       // Data received from socket    long *bytes_read
+  MG_EV_WRITE,      // Data written to socket       long *bytes_written
+  MG_EV_CLOSE,      // Connection closed            NULL
+  MG_EV_HTTP_MSG,   // HTTP request/response        struct mg_http_message *
+  MG_EV_WS_OPEN,    // Websocket handshake done     struct mg_http_message *
+  MG_EV_WS_MSG,     // Websocket msg, text or bin   struct mg_ws_message *
+  MG_EV_WS_CTL,     // Websocket control msg        struct mg_ws_message *
+  MG_EV_MQTT_CMD,   // MQTT low-level command       struct mg_mqtt_message *
+  MG_EV_MQTT_MSG,   // MQTT PUBLISH received        struct mg_mqtt_message *
+  MG_EV_MQTT_OPEN,  // MQTT CONNACK received        int *connack_status_code
+  MG_EV_SNTP_TIME,  // SNTP time received           uint64_t *epoch_millis
+  MG_EV_WAKEUP,     // mg_wakeup() data received    struct mg_str *data
+  MG_EV_USER        // Starting ID for user events
 };
 
 
@@ -1161,9 +2143,10 @@ struct mg_dns {
 };
 
 struct mg_addr {
-  uint8_t ip[16];  // Holds IPv4 or IPv6 address, in network byte order
-  uint16_t port;   // TCP or UDP port in network byte order
-  bool is_ip6;     // True when address is IPv6 address
+  uint8_t ip[16];    // Holds IPv4 or IPv6 address, in network byte order
+  uint16_t port;     // TCP or UDP port in network byte order
+  uint8_t scope_id;  // IPv6 scope ID
+  bool is_ip6;       // True when address is IPv6 address
 };
 
 struct mg_mgr {
@@ -1182,6 +2165,7 @@ struct mg_mgr {
   int epoll_fd;                 // Used when MG_EPOLL_ENABLE=1
   void *priv;                   // Used by the MIP stack
   size_t extraconnsize;         // Used by the MIP stack
+  MG_SOCKET_TYPE pipe;          // Socketpair end for mg_wakeup()
 #if MG_ENABLE_FREERTOS_TCP
   SocketSet_t ss;  // NOTE(lsm): referenced from socket struct
 #endif
@@ -1196,6 +2180,8 @@ struct mg_connection {
   unsigned long id;            // Auto-incrementing unique connection ID
   struct mg_iobuf recv;        // Incoming data
   struct mg_iobuf send;        // Outgoing data
+  struct mg_iobuf prof;        // Profile data enabled by MG_ENABLE_PROFILE
+  struct mg_iobuf rtls;        // TLS only. Incoming encrypted data
   mg_event_handler_t fn;       // User-specified event handler function
   void *fn_data;               // User-specified function parameter
   mg_event_handler_t pfn;      // Protocol-specific handler function
@@ -1237,7 +2223,6 @@ bool mg_send(struct mg_connection *, const void *, size_t);
 size_t mg_printf(struct mg_connection *, const char *fmt, ...);
 size_t mg_vprintf(struct mg_connection *, const char *fmt, va_list *ap);
 bool mg_aton(struct mg_str str, struct mg_addr *addr);
-int mg_mkpipe(struct mg_mgr *, mg_event_handler_t, void *, bool udp);
 
 // These functions are used to integrate with custom network stacks
 struct mg_connection *mg_alloc_conn(struct mg_mgr *);
@@ -1245,13 +2230,10 @@ void mg_close_conn(struct mg_connection *c);
 bool mg_open_listener(struct mg_connection *c, const char *url);
 
 // Utility functions
+bool mg_wakeup(struct mg_mgr *, unsigned long id, const void *buf, size_t len);
+bool mg_wakeup_init(struct mg_mgr *);
 struct mg_timer *mg_timer_add(struct mg_mgr *mgr, uint64_t milliseconds,
                               unsigned flags, void (*fn)(void *), void *arg);
-
-// Low-level IO primives used by TLS layer
-enum { MG_IO_ERR = -1, MG_IO_WAIT = -2, MG_IO_RESET = -3 };
-long mg_io_send(struct mg_connection *c, const void *buf, size_t len);
-long mg_io_recv(struct mg_connection *c, void *buf, size_t len);
 
 
 
@@ -1270,7 +2252,6 @@ struct mg_http_message {
   struct mg_http_header headers[MG_MAX_HTTP_HEADERS];  // Headers
   struct mg_str body;                                  // Body
   struct mg_str head;                                  // Request + headers
-  struct mg_str chunk;    // Chunk for chunked encoding,  or partial body
   struct mg_str message;  // Request + headers + body
 };
 
@@ -1341,22 +2322,27 @@ void mg_http_serve_ssi(struct mg_connection *c, const char *root,
 
 
 struct mg_tls_opts {
-  struct mg_str client_ca;
-  struct mg_str server_ca;
-  struct mg_str server_cert;
-  struct mg_str server_key;
-  struct mg_str client_cert;
-  struct mg_str client_key;
+  struct mg_str ca;    // PEM or DER
+  struct mg_str cert;  // PEM or DER
+  struct mg_str key;   // PEM or DER
+  struct mg_str name;  // If not empty, enable host name verification
 };
 
-void mg_tls_ctx_init(struct mg_mgr *, const struct mg_tls_opts *);
-void mg_tls_ctx_free(struct mg_mgr *);
-void mg_tls_init(struct mg_connection *, struct mg_str hostname);
+void mg_tls_init(struct mg_connection *, const struct mg_tls_opts *opts);
 void mg_tls_free(struct mg_connection *);
 long mg_tls_send(struct mg_connection *, const void *buf, size_t len);
 long mg_tls_recv(struct mg_connection *, void *buf, size_t len);
 size_t mg_tls_pending(struct mg_connection *);
 void mg_tls_handshake(struct mg_connection *);
+
+// Private
+void mg_tls_ctx_init(struct mg_mgr *);
+void mg_tls_ctx_free(struct mg_mgr *);
+
+// Low-level IO primives used by TLS layer
+enum { MG_IO_ERR = -1, MG_IO_WAIT = -2, MG_IO_RESET = -3 };
+long mg_io_send(struct mg_connection *c, const void *buf, size_t len);
+long mg_io_recv(struct mg_connection *c, void *buf, size_t len);
 
 
 
@@ -1371,20 +2357,21 @@ void mg_tls_handshake(struct mg_connection *);
 #include <mbedtls/ssl_ticket.h>
 
 struct mg_tls_ctx {
-  mbedtls_x509_crt server_ca;     // Parsed CA certificate
-  mbedtls_x509_crt client_ca;     // Parsed CA certificate
-  mbedtls_x509_crt server_cert;   // Parsed server certificate
-  mbedtls_pk_context server_key;  // Parsed server private key context
-  mbedtls_x509_crt client_cert;   // Parsed client certificate
-  mbedtls_pk_context client_key;  // Parsed client private key context
+  int dummy;
 #ifdef MBEDTLS_SSL_SESSION_TICKETS
-  mbedtls_ssl_ticket_context ticket_ctx;  // Session tickets context
+  mbedtls_ssl_ticket_context tickets;
 #endif
 };
 
 struct mg_tls {
+  mbedtls_x509_crt ca;      // Parsed CA certificate
+  mbedtls_x509_crt cert;    // Parsed certificate
+  mbedtls_pk_context pk;    // Private key context
   mbedtls_ssl_context ssl;  // SSL/TLS context
   mbedtls_ssl_config conf;  // SSL-TLS config
+#ifdef MBEDTLS_SSL_SESSION_TICKETS
+  mbedtls_ssl_ticket_context ticket;  // Session tickets context
+#endif
 };
 #endif
 
@@ -1394,16 +2381,8 @@ struct mg_tls {
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
-struct mg_tls_ctx {
-  X509 *server_cert;
-  EVP_PKEY *server_key;
-  STACK_OF(X509_INFO) *server_ca;
-  X509 *client_cert;
-  EVP_PKEY *client_key;
-  STACK_OF(X509_INFO) *client_ca;
-};
-
 struct mg_tls {
+  BIO_METHOD *bm;
   SSL_CTX *ctx;
   SSL *ssl;
 };
@@ -1614,6 +2593,8 @@ char *mg_json_get_hex(struct mg_str json, const char *path, int *len);
 char *mg_json_get_b64(struct mg_str json, const char *path, int *len);
 
 bool mg_json_unescape(struct mg_str str, char *buf, size_t len);
+size_t mg_json_next(struct mg_str obj, size_t ofs, struct mg_str *key,
+                    struct mg_str *val);
 
 
 
@@ -1655,33 +2636,75 @@ void mg_rpc_list(struct mg_rpc_req *r);
 
 
 #define MG_OTA_NONE 0      // No OTA support
-#define MG_OTA_STM32H5 1   // STM32 H5 series
+#define MG_OTA_FLASH 1     // OTA via an internal flash
 #define MG_OTA_CUSTOM 100  // Custom implementation
-
-#define MG_OTA_MAGIC 0xb07afeed
 
 #ifndef MG_OTA
 #define MG_OTA MG_OTA_NONE
 #endif
 
+#if defined(__GNUC__) && !defined(__APPLE__)
+#define MG_IRAM __attribute__((section(".iram")))
+#else
+#define MG_IRAM
+#endif
+
 // Firmware update API
 bool mg_ota_begin(size_t new_firmware_size);     // Start writing
-bool mg_ota_write(const void *buf, size_t len);  // Write firmware chunk
+bool mg_ota_write(const void *buf, size_t len);  // Write chunk, aligned to 1k
 bool mg_ota_end(void);                           // Stop writing
-void mg_sys_reset(void);                         // Reboot device
 
-struct mg_ota_data {
-  uint32_t magic;   // Must be MG_OTA_MAGIC
-  uint32_t crc32;   // Checksum of the current firmware
-  uint32_t size;    // Firware size
-  uint32_t time;    // Flashing timestamp. Unix epoch, seconds since 1970
-  uint32_t booted;  // -1: not yet booted before, otherwise booted
-  uint32_t golden;  // -1: not yet comitted, otherwise clean, committed
+enum {
+  MG_OTA_UNAVAILABLE = 0,  // No OTA information is present
+  MG_OTA_FIRST_BOOT = 1,   // Device booting the first time after the OTA
+  MG_OTA_UNCOMMITTED = 2,  // Ditto, but marking us for the rollback
+  MG_OTA_COMMITTED = 3     // The firmware is good
 };
+enum { MG_FIRMWARE_CURRENT = 0, MG_FIRMWARE_PREVIOUS = 1 };
 
-bool mg_ota_status(struct mg_ota_data[2]);  // Get status for curr and prev fw
-bool mg_ota_commit(void);                   // Commit current firmware
-bool mg_ota_rollback(void);                 // Rollback to prev firmware
+int mg_ota_status(int firmware);          // Return firmware status MG_OTA_*
+uint32_t mg_ota_crc32(int firmware);      // Return firmware checksum
+uint32_t mg_ota_timestamp(int firmware);  // Firmware timestamp, UNIX UTC epoch
+size_t mg_ota_size(int firmware);         // Firmware size
+
+bool mg_ota_commit(void);        // Commit current firmware
+bool mg_ota_rollback(void);      // Rollback to the previous firmware
+MG_IRAM void mg_ota_boot(void);  // Bootloader function
+// Copyright (c) 2023 Cesanta Software Limited
+// All rights reserved
+
+
+
+
+
+#define MG_DEVICE_NONE 0        // Dummy system
+#define MG_DEVICE_STM32H5 1     // STM32 H5
+#define MG_DEVICE_STM32H7 2     // STM32 H7
+#define MG_DEVICE_CH32V307 100  // WCH CH32V307
+#define MG_DEVICE_CUSTOM 1000   // Custom implementation
+
+#ifndef MG_DEVICE
+#define MG_DEVICE MG_DEVICE_NONE
+#endif
+
+// Flash information
+void *mg_flash_start(void);         // Return flash start address
+size_t mg_flash_size(void);         // Return flash size
+size_t mg_flash_sector_size(void);  // Return flash sector size
+size_t mg_flash_write_align(void);  // Return flash write align, minimum 4
+int mg_flash_bank(void);            // 0: not dual bank, 1: bank1, 2: bank2
+
+// Write, erase, swap bank
+bool mg_flash_write(void *addr, const void *buf, size_t len);
+bool mg_flash_erase(void *sector);
+bool mg_flash_swap_bank(void);
+
+// Convenience functions to store data on a flash sector with wear levelling
+// If `sector` is NULL, then the last sector of flash is used
+bool mg_flash_load(void *sector, uint32_t key, void *buf, size_t len);
+bool mg_flash_save(void *sector, uint32_t key, const void *buf, size_t len);
+
+void mg_device_reset(void);  // Reboot device immediately
 
 
 
@@ -1705,12 +2728,15 @@ struct mg_tcpip_if {
   struct mg_str tx;                // Output (TX) buffer
   bool enable_dhcp_client;         // Enable DCHP client
   bool enable_dhcp_server;         // Enable DCHP server
+  bool enable_get_gateway;         // DCHP server sets client as gateway
   bool enable_crc32_check;         // Do a CRC check on RX frames and strip it
   bool enable_mac_check;           // Do a MAC check on RX frames
   struct mg_tcpip_driver *driver;  // Low level driver
   void *driver_data;               // Driver-specific data
   struct mg_mgr *mgr;              // Mongoose event manager
   struct mg_queue recv_queue;      // Receive queue
+  uint16_t mtu;                    // Interface MTU
+#define MG_TCPIP_MTU_DEFAULT 1500
 
   // Internal state, user can use it but should not change it
   uint8_t gwmac[6];             // Router's MAC
@@ -1733,12 +2759,13 @@ void mg_tcpip_init(struct mg_mgr *, struct mg_tcpip_if *);
 void mg_tcpip_free(struct mg_tcpip_if *);
 void mg_tcpip_qwrite(void *buf, size_t len, struct mg_tcpip_if *ifp);
 
-extern struct mg_tcpip_driver mg_tcpip_driver_stm32;
+extern struct mg_tcpip_driver mg_tcpip_driver_stm32f;
 extern struct mg_tcpip_driver mg_tcpip_driver_w5500;
 extern struct mg_tcpip_driver mg_tcpip_driver_tm4c;
 extern struct mg_tcpip_driver mg_tcpip_driver_stm32h;
 extern struct mg_tcpip_driver mg_tcpip_driver_imxrt;
 extern struct mg_tcpip_driver mg_tcpip_driver_same54;
+extern struct mg_tcpip_driver mg_tcpip_driver_cmsis;
 
 // Drivers that require SPI, can use this SPI abstraction
 struct mg_tcpip_spi {
@@ -1750,31 +2777,112 @@ struct mg_tcpip_spi {
 #endif
 
 
-struct mg_tcpip_driver_imxrt1020_data {
-  // MDC clock divider. MDC clock is derived from IPS Bus clock (ipg_clk),
-  // must not exceed 2.5MHz. Configuration for clock range 2.36~2.50 MHz
-  //    ipg_clk       MSCR       mdc_cr VALUE
-  //    -------------------------------------
-  //                                -1  <-- tell driver to guess the value
-  //    25 MHz        0x04           0
-  //    33 MHz        0x06           1
-  //    40 MHz        0x07           2
-  //    50 MHz        0x09           3
-  //    66 MHz        0x0D           4  <-- value for iMXRT1020-EVK at max freq.
-  int mdc_cr;  // Valid values: -1, 0, 1, 2, 3, 4
+
+// Macros to record timestamped events that happens with a connection.
+// They are saved into a c->prof IO buffer, each event is a name and a 32-bit
+// timestamp in milliseconds since connection init time.
+//
+// Test (run in two separate terminals):
+//   make -C examples/http-server/ CFLAGS_EXTRA=-DMG_ENABLE_PROFILE=1
+//   curl localhost:8000
+// Output:
+//   1ea1f1e7 2 net.c:150:mg_close_conn      3 profile:                                                            
+//   1ea1f1e8 2 net.c:150:mg_close_conn      1ea1f1e6 init                                                         
+//   1ea1f1e8 2 net.c:150:mg_close_conn          0 EV_OPEN
+//   1ea1f1e8 2 net.c:150:mg_close_conn          0 EV_ACCEPT 
+//   1ea1f1e8 2 net.c:150:mg_close_conn          0 EV_READ
+//   1ea1f1e8 2 net.c:150:mg_close_conn          0 EV_HTTP_MSG
+//   1ea1f1e8 2 net.c:150:mg_close_conn          0 EV_WRITE
+//   1ea1f1e8 2 net.c:150:mg_close_conn          1 EV_CLOSE
+//
+// Usage:
+//   Enable profiling by setting MG_ENABLE_PROFILE=1
+//   Invoke MG_PROF_ADD(c, "MY_EVENT_1") in the places you'd like to measure
+
+#if MG_ENABLE_PROFILE
+struct mg_profitem {
+  const char *name;    // Event name
+  uint32_t timestamp;  // Milliseconds since connection creation (MG_EV_OPEN)
 };
 
+#define MG_PROFILE_ALLOC_GRANULARITY 256  // Can save 32 items wih to realloc
 
-#if MG_ENABLE_TCPIP && defined(MG_ENABLE_DRIVER_SAME54) && MG_ENABLE_DRIVER_SAME54
+// Adding a profile item to the c->prof. Must be as fast as possible.
+// Reallocation of the c->prof iobuf is not desirable here, that's why we
+// pre-allocate c->prof with MG_PROFILE_ALLOC_GRANULARITY.
+// This macro just inits and copies 8 bytes, and calls mg_millis(),
+// which should be fast enough.
+#define MG_PROF_ADD(c, name_)                                             \
+  do {                                                                    \
+    struct mg_iobuf *io = &c->prof;                                       \
+    uint32_t inittime = ((struct mg_profitem *) io->buf)->timestamp;      \
+    struct mg_profitem item = {name_, (uint32_t) mg_millis() - inittime}; \
+    mg_iobuf_add(io, io->len, &item, sizeof(item));                       \
+  } while (0)
+
+// Initialising profile for a new connection. Not time sensitive
+#define MG_PROF_INIT(c)                                          \
+  do {                                                           \
+    struct mg_profitem first = {"init", (uint32_t) mg_millis()}; \
+    mg_iobuf_init(&(c)->prof, 0, MG_PROFILE_ALLOC_GRANULARITY);  \
+    mg_iobuf_add(&c->prof, c->prof.len, &first, sizeof(first));  \
+  } while (0)
+
+#define MG_PROF_FREE(c) mg_iobuf_free(&(c)->prof)
+
+// Dumping the profile. Not time sensitive
+#define MG_PROF_DUMP(c)                                            \
+  do {                                                             \
+    struct mg_iobuf *io = &c->prof;                                \
+    struct mg_profitem *p = (struct mg_profitem *) io->buf;        \
+    struct mg_profitem *e = &p[io->len / sizeof(*p)];              \
+    MG_INFO(("%lu profile:", c->id));                              \
+    while (p < e) {                                                \
+      MG_INFO(("%5lx %s", (unsigned long) p->timestamp, p->name)); \
+      p++;                                                         \
+    }                                                              \
+  } while (0)
+
+#else
+#define MG_PROF_INIT(c)
+#define MG_PROF_FREE(c)
+#define MG_PROF_ADD(c, name)
+#define MG_PROF_DUMP(c)
+#endif
+
+
+#if MG_ENABLE_TCPIP && defined(MG_ENABLE_DRIVER_CMSIS) && MG_ENABLE_DRIVER_CMSIS
+
+#include "Driver_ETH_MAC.h"  // keep this include
+#include "Driver_ETH_PHY.h"  // keep this include
+
+#endif
+
+
+struct mg_tcpip_driver_imxrt_data {
+  // MDC clock divider. MDC clock is derived from IPS Bus clock (ipg_clk),
+  // must not exceed 2.5MHz. Configuration for clock range 2.36~2.50 MHz
+  // 37.5.1.8.2, Table 37-46 : f = ipg_clk / (2(mdc_cr + 1))
+  //    ipg_clk       mdc_cr VALUE
+  //    --------------------------
+  //                  -1  <-- TODO() tell driver to guess the value
+  //    25 MHz         4
+  //    33 MHz         6
+  //    40 MHz         7
+  //    50 MHz         9
+  //    66 MHz        13
+  int mdc_cr;  // Valid values: -1 to 63
+
+  uint8_t phy_addr;  // PHY address
+};
+
 
 struct mg_tcpip_driver_same54_data {
     int mdc_cr;
 };
 
-#endif
 
-
-struct mg_tcpip_driver_stm32_data {
+struct mg_tcpip_driver_stm32f_data {
   // MDC clock divider. MDC clock is derived from HCLK, must not exceed 2.5MHz
   //    HCLK range    DIVIDER    mdc_cr VALUE
   //    -------------------------------------
@@ -1787,6 +2895,8 @@ struct mg_tcpip_driver_stm32_data {
   //    216-310 MHz   HCLK/124       5
   //    110, 111 Reserved
   int mdc_cr;  // Valid values: -1, 0, 1, 2, 3, 4, 5
+
+  uint8_t phy_addr;  // PHY address
 };
 
 
@@ -1818,165 +2928,6 @@ struct mg_tcpip_driver_tm4c_data {
   //    0x4-0xF Reserved
   int mdc_cr;  // Valid values: -1, 0, 1, 2, 3
 };
-
-
-#define CA_ISRG_ROOT_X2                                                \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIICGzCCAaGgAwIBAgIQQdKd0XLq7qeAwSxs6S+HUjAKBggqhkjOPQQDAzBPMQsw\n" \
-  "CQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJuZXQgU2VjdXJpdHkgUmVzZWFyY2gg\n" \
-  "R3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBYMjAeFw0yMDA5MDQwMDAwMDBaFw00\n" \
-  "MDA5MTcxNjAwMDBaME8xCzAJBgNVBAYTAlVTMSkwJwYDVQQKEyBJbnRlcm5ldCBT\n" \
-  "ZWN1cml0eSBSZXNlYXJjaCBHcm91cDEVMBMGA1UEAxMMSVNSRyBSb290IFgyMHYw\n" \
-  "EAYHKoZIzj0CAQYFK4EEACIDYgAEzZvVn4CDCuwJSvMWSj5cz3es3mcFDR0HttwW\n" \
-  "+1qLFNvicWDEukWVEYmO6gbf9yoWHKS5xcUy4APgHoIYOIvXRdgKam7mAHf7AlF9\n" \
-  "ItgKbppbd9/w+kHsOdx1ymgHDB/qo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0T\n" \
-  "AQH/BAUwAwEB/zAdBgNVHQ4EFgQUfEKWrt5LSDv6kviejM9ti6lyN5UwCgYIKoZI\n" \
-  "zj0EAwMDaAAwZQIwe3lORlCEwkSHRhtFcP9Ymd70/aTSVaYgLXTWNLxBo1BfASdW\n" \
-  "tL4ndQavEi51mI38AjEAi/V3bNTIZargCyzuFJ0nN6T5U6VR5CmD1/iQMVtCnwr1\n" \
-  "/q4AaOeMSQ+2b1tbFfLn\n"                                             \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_ISRG_ROOT_X1                                                \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw\n" \
-  "TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\n" \
-  "cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMTUwNjA0MTEwNDM4\n" \
-  "WhcNMzUwNjA0MTEwNDM4WjBPMQswCQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJu\n" \
-  "ZXQgU2VjdXJpdHkgUmVzZWFyY2ggR3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBY\n" \
-  "MTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAK3oJHP0FDfzm54rVygc\n" \
-  "h77ct984kIxuPOZXoHj3dcKi/vVqbvYATyjb3miGbESTtrFj/RQSa78f0uoxmyF+\n" \
-  "0TM8ukj13Xnfs7j/EvEhmkvBioZxaUpmZmyPfjxwv60pIgbz5MDmgK7iS4+3mX6U\n" \
-  "A5/TR5d8mUgjU+g4rk8Kb4Mu0UlXjIB0ttov0DiNewNwIRt18jA8+o+u3dpjq+sW\n" \
-  "T8KOEUt+zwvo/7V3LvSye0rgTBIlDHCNAymg4VMk7BPZ7hm/ELNKjD+Jo2FR3qyH\n" \
-  "B5T0Y3HsLuJvW5iB4YlcNHlsdu87kGJ55tukmi8mxdAQ4Q7e2RCOFvu396j3x+UC\n" \
-  "B5iPNgiV5+I3lg02dZ77DnKxHZu8A/lJBdiB3QW0KtZB6awBdpUKD9jf1b0SHzUv\n" \
-  "KBds0pjBqAlkd25HN7rOrFleaJ1/ctaJxQZBKT5ZPt0m9STJEadao0xAH0ahmbWn\n" \
-  "OlFuhjuefXKnEgV4We0+UXgVCwOPjdAvBbI+e0ocS3MFEvzG6uBQE3xDk3SzynTn\n" \
-  "jh8BCNAw1FtxNrQHusEwMFxIt4I7mKZ9YIqioymCzLq9gwQbooMDQaHWBfEbwrbw\n" \
-  "qHyGO0aoSCqI3Haadr8faqU9GY/rOPNk3sgrDQoo//fb4hVC1CLQJ13hef4Y53CI\n" \
-  "rU7m2Ys6xt0nUW7/vGT1M0NPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNV\n" \
-  "HRMBAf8EBTADAQH/MB0GA1UdDgQWBBR5tFnme7bl5AFzgAiIyBpY9umbbjANBgkq\n" \
-  "hkiG9w0BAQsFAAOCAgEAVR9YqbyyqFDQDLHYGmkgJykIrGF1XIpu+ILlaS/V9lZL\n" \
-  "ubhzEFnTIZd+50xx+7LSYK05qAvqFyFWhfFQDlnrzuBZ6brJFe+GnY+EgPbk6ZGQ\n" \
-  "3BebYhtF8GaV0nxvwuo77x/Py9auJ/GpsMiu/X1+mvoiBOv/2X/qkSsisRcOj/KK\n" \
-  "NFtY2PwByVS5uCbMiogziUwthDyC3+6WVwW6LLv3xLfHTjuCvjHIInNzktHCgKQ5\n" \
-  "ORAzI4JMPJ+GslWYHb4phowim57iaztXOoJwTdwJx4nLCgdNbOhdjsnvzqvHu7Ur\n" \
-  "TkXWStAmzOVyyghqpZXjFaH3pO3JLF+l+/+sKAIuvtd7u+Nxe5AW0wdeRlN8NwdC\n" \
-  "jNPElpzVmbUq4JUagEiuTDkHzsxHpFKVK7q4+63SM1N95R1NbdWhscdCb+ZAJzVc\n" \
-  "oyi3B43njTOQ5yOf+1CceWxG1bQVs5ZufpsMljq4Ui0/1lvh+wjChP4kqKOJ2qxq\n" \
-  "4RgqsahDYVvTH9w7jXbyLeiNdd8XM2w9U/t7y0Ff/9yi0GE44Za4rF2LN9d11TPA\n" \
-  "mRGunUHBcnWEvgJBQl9nJEiU0Zsnvgc/ubhPgXRR4Xq37Z0j4r7g1SgEEzwxA57d\n" \
-  "emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=\n" \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_GOOGLE_TRUST                                                \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIBxTCCAWugAwIBAgINAfD3nVndblD3QnNxUDAKBggqhkjOPQQDAjBEMQswCQYD\n" \
-  "VQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzERMA8G\n" \
-  "A1UEAxMIR1RTIExUU1IwHhcNMTgxMTAxMDAwMDQyWhcNNDIxMTAxMDAwMDQyWjBE\n" \
-  "MQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExM\n" \
-  "QzERMA8GA1UEAxMIR1RTIExUU1IwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATN\n" \
-  "8YyO2u+yCQoZdwAkUNv5c3dokfULfrA6QJgFV2XMuENtQZIG5HUOS6jFn8f0ySlV\n" \
-  "eORCxqFyjDJyRn86d+Iko0IwQDAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUw\n" \
-  "AwEB/zAdBgNVHQ4EFgQUPv7/zFLrvzQ+PfNA0OQlsV+4u1IwCgYIKoZIzj0EAwID\n" \
-  "SAAwRQIhAPKuf/VtBHqGw3TUwUIq7TfaExp3bH7bjCBmVXJupT9FAiBr0SmCtsuk\n" \
-  "miGgpajjf/gFigGM34F9021bCWs1MbL0SA==\n"                             \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_GLOBALSIGN_EC                                               \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIB4TCCAYegAwIBAgIRKjikHJYKBN5CsiilC+g0mAIwCgYIKoZIzj0EAwIwUDEk\n" \
-  "MCIGA1UECxMbR2xvYmFsU2lnbiBFQ0MgUm9vdCBDQSAtIFI0MRMwEQYDVQQKEwpH\n" \
-  "bG9iYWxTaWduMRMwEQYDVQQDEwpHbG9iYWxTaWduMB4XDTEyMTExMzAwMDAwMFoX\n" \
-  "DTM4MDExOTAzMTQwN1owUDEkMCIGA1UECxMbR2xvYmFsU2lnbiBFQ0MgUm9vdCBD\n" \
-  "QSAtIFI0MRMwEQYDVQQKEwpHbG9iYWxTaWduMRMwEQYDVQQDEwpHbG9iYWxTaWdu\n" \
-  "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuMZ5049sJQ6fLjkZHAOkrprlOQcJ\n" \
-  "FspjsbmG+IpXwVfOQvpzofdlQv8ewQCybnMO/8ch5RikqtlxP6jUuc6MHaNCMEAw\n" \
-  "DgYDVR0PAQH/BAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFFSwe61F\n" \
-  "uOJAf/sKbvu+M8k8o4TVMAoGCCqGSM49BAMCA0gAMEUCIQDckqGgE6bPA7DmxCGX\n" \
-  "kPoUVy0D7O48027KqGx2vKLeuwIgJ6iFJzWbVsaj8kfSt24bAgAXqmemFZHe+pTs\n" \
-  "ewv4n4Q=\n"                                                         \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_GLOBALSIGN_RSA                                              \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIDdTCCAl2gAwIBAgILBAAAAAABFUtaw5QwDQYJKoZIhvcNAQEFBQAwVzELMAkG\n" \
-  "A1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jv\n" \
-  "b3QgQ0ExGzAZBgNVBAMTEkdsb2JhbFNpZ24gUm9vdCBDQTAeFw05ODA5MDExMjAw\n" \
-  "MDBaFw0yODAxMjgxMjAwMDBaMFcxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\n" \
-  "YWxTaWduIG52LXNhMRAwDgYDVQQLEwdSb290IENBMRswGQYDVQQDExJHbG9iYWxT\n" \
-  "aWduIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDaDuaZ\n" \
-  "jc6j40+Kfvvxi4Mla+pIH/EqsLmVEQS98GPR4mdmzxzdzxtIK+6NiY6arymAZavp\n" \
-  "xy0Sy6scTHAHoT0KMM0VjU/43dSMUBUc71DuxC73/OlS8pF94G3VNTCOXkNz8kHp\n" \
-  "1Wrjsok6Vjk4bwY8iGlbKk3Fp1S4bInMm/k8yuX9ifUSPJJ4ltbcdG6TRGHRjcdG\n" \
-  "snUOhugZitVtbNV4FpWi6cgKOOvyJBNPc1STE4U6G7weNLWLBYy5d4ux2x8gkasJ\n" \
-  "U26Qzns3dLlwR5EiUWMWea6xrkEmCMgZK9FGqkjWZCrXgzT/LCrBbBlDSgeF59N8\n" \
-  "9iFo7+ryUp9/k5DPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8E\n" \
-  "BTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo//z9SzANBgkqhkiG9w0B\n" \
-  "AQUFAAOCAQEA1nPnfE920I2/7LqivjTFKDK1fPxsnCwrvQmeU79rXqoRSLblCKOz\n" \
-  "yj1hTdNGCbM+w6DjY1Ub8rrvrTnhQ7k4o+YviiY776BQVvnGCv04zcQLcFGUl5gE\n" \
-  "38NflNUVyRRBnMRddWQVDf9VMOyGj/8N7yy5Y0b2qvzfvGn9LhJIZJrglfCm7ymP\n" \
-  "AbEVtQwdpf5pLGkkeB6zpxxxYu7KyJesF12KwvhHhm4qxFYxldBniYUr+WymXUad\n" \
-  "DKqC5JlR3XC321Y9YeRq4VzW9v493kHMB65jUr9TU/Qr6cf9tveCX4XSQRjbgbME\n" \
-  "HMUfpIBvFSDJ3gyICh3WZlXi/EjJKSZp4A==\n"                             \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_DIGICERT                                                    \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\n" \
-  "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n" \
-  "d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\n" \
-  "QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT\n" \
-  "MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\n" \
-  "b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG\n" \
-  "9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB\n" \
-  "CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97\n" \
-  "nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt\n" \
-  "43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P\n" \
-  "T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4\n" \
-  "gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO\n" \
-  "BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR\n" \
-  "TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw\n" \
-  "DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr\n" \
-  "hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg\n" \
-  "06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF\n" \
-  "PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls\n" \
-  "YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\n" \
-  "CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n"                 \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_AMAZON_4                                                    \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIB8jCCAXigAwIBAgITBmyf18G7EEwpQ+Vxe3ssyBrBDjAKBggqhkjOPQQDAzA5\n" \
-  "MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6b24g\n" \
-  "Um9vdCBDQSA0MB4XDTE1MDUyNjAwMDAwMFoXDTQwMDUyNjAwMDAwMFowOTELMAkG\n" \
-  "A1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJvb3Qg\n" \
-  "Q0EgNDB2MBAGByqGSM49AgEGBSuBBAAiA2IABNKrijdPo1MN/sGKe0uoe0ZLY7Bi\n" \
-  "9i0b2whxIdIA6GO9mif78DluXeo9pcmBqqNbIJhFXRbb/egQbeOc4OO9X4Ri83Bk\n" \
-  "M6DLJC9wuoihKqB1+IGuYgbEgds5bimwHvouXKNCMEAwDwYDVR0TAQH/BAUwAwEB\n" \
-  "/zAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0OBBYEFNPsxzplbszh2naaVvuc84ZtV+WB\n" \
-  "MAoGCCqGSM49BAMDA2gAMGUCMDqLIfG9fhGt0O9Yli/W651+kI0rz2ZVwyzjKKlw\n" \
-  "CkcO8DdZEv8tmZQoTipPNU0zWgIxAOp1AE47xDqUEpHJWEadIRNyp4iciuRMStuW\n" \
-  "1KyLa2tJElMzrdfkviT8tQp21KW8EA==\n"                                 \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_AMAZON_3                                                    \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIBtjCCAVugAwIBAgITBmyf1XSXNmY/Owua2eiedgPySjAKBggqhkjOPQQDAjA5\n" \
-  "MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6b24g\n" \
-  "Um9vdCBDQSAzMB4XDTE1MDUyNjAwMDAwMFoXDTQwMDUyNjAwMDAwMFowOTELMAkG\n" \
-  "A1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJvb3Qg\n" \
-  "Q0EgMzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABCmXp8ZBf8ANm+gBG1bG8lKl\n" \
-  "ui2yEujSLtf6ycXYqm0fc4E7O5hrOXwzpcVOho6AF2hiRVd9RFgdszflZwjrZt6j\n" \
-  "QjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgGGMB0GA1UdDgQWBBSr\n" \
-  "ttvXBp43rDCGB5Fwx5zEGbF4wDAKBggqhkjOPQQDAgNJADBGAiEA4IWSoxe3jfkr\n" \
-  "BqWTrBqYaGFy+uGh0PsceGCmQ5nFuMQCIQCcAu/xlJyzlvnrxir4tiz+OpAUFteM\n" \
-  "YyRIHN8wfdVoOw==\n"                                                 \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_ALL                                                     \
-  CA_ISRG_ROOT_X1 CA_ISRG_ROOT_X2 CA_GOOGLE_TRUST CA_GLOBALSIGN_EC \
-      CA_GLOBALSIGN_RSA CA_DIGICERT CA_AMAZON_4 CA_AMAZON_3
 
 #ifdef __cplusplus
 }

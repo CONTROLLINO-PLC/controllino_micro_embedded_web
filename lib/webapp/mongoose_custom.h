@@ -12,8 +12,9 @@
 #define MG_ENABLE_TCPIP 1
 #define mkdir(a, b) (-1)
 #define MG_IO_SIZE 128
-//#define MG_ENABLE_LOG 0
+    //#define MG_ENABLE_LOG 0
 
 #define MG_ENABLE_PACKED_FS 1
 // #define MG_TLS MG_TLS_BUILTIN
 
+#define MG_OTA MG_OTA_CUSTOM
