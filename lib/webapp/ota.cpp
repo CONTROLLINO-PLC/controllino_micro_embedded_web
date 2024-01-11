@@ -1,7 +1,22 @@
+/*
+ * Copyright (c) 2023 CONTROLLINO GmbH.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #include <Updater.h>
 #include <PicoOTA.h>
 #include <pico_base/pico/ota_command.h>
 #include "mongoose.h"
+
+/**
+ * \file ota.cpp
+ *
+ * Custom mongoose OTA implementation based on arduino-pico Updater and PicoOTA libraries
+ *
+ * \author Pedro Marquez @pmmarquez, CONTROLLINO Firmware Team
+ */
+
 
 #define FW_INFO_FILE "fwinfo.bin"
 

@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "SPI.h"
-#include "net.h"
+#include <SPI.h>
+#include "webapp.h"
 
 /**
- * \file net.c
+ * \file webapp.cpp
  *
- * Based on mongoose device-dashboard example (Copyright (c) 2023 Cesanta Software Limited)
+ * Based on mongoose device-dashboard example
  *
  * \author Pedro Marquez @pmmarquez, CONTROLLINO Firmware Team
  */
@@ -46,7 +46,13 @@ struct mg_tcpip_if mif = {
   .driver_data = &spi
 };
 
+// Time management
 static uint64_t s_boot_timestamp = 0;  // Updated by SNTP
+
+// This is for newlib and TLS (mbedTLS)
+uint64_t mg_now(void) {
+  return mg_millis() + s_boot_timestamp;
+}
 
 // SNTP connection event handler. When we get a response from an SNTP server,
 // adjust s_boot_timestamp. We'll get a valid time from that point on
@@ -80,6 +86,72 @@ extern void handleTxWs(const char* data, size_t len) {
   }
 }
 
+// Http handlers
+static const char* s_json_header =
+"Content-Type: application/json\r\n"
+"Cache-Control: no-cache\r\n";
+
+static void handle_firmware_upload(struct mg_connection* c,
+  struct mg_http_message* hm) {
+  char name[64], offset[20], total[20];
+  struct mg_str data = hm->body;
+  long ofs = -1, tot = -1;
+  name[0] = offset[0] = '\0';
+  mg_http_get_var(&hm->query, "name", name, sizeof(name));
+  mg_http_get_var(&hm->query, "offset", offset, sizeof(offset));
+  mg_http_get_var(&hm->query, "total", total, sizeof(total));
+  MG_INFO(("File %s, offset %s, len %lu", name, offset, data.len));
+  if ((ofs = mg_json_get_long(mg_str(offset), "$", -1)) < 0 ||
+    (tot = mg_json_get_long(mg_str(total), "$", -1)) < 0) {
+    mg_http_reply(c, 500, "", "offset and total not set\n");
+  }
+  else if (ofs == 0 && mg_ota_begin((size_t)tot) == false) {
+    mg_http_reply(c, 500, "", "mg_ota_begin(%ld) failed\n", tot);
+  }
+  else if (data.len > 0 && mg_ota_write(data.ptr, data.len) == false) {
+    mg_http_reply(c, 500, "", "mg_ota_write(%lu) @%ld failed\n", data.len, ofs);
+    mg_ota_end();
+  }
+  else if (data.len == 0 && mg_ota_end() == false) {
+    mg_http_reply(c, 500, "", "mg_ota_end() failed\n", tot);
+  }
+  else {
+    mg_http_reply(c, 200, s_json_header, "true\n");
+    if (data.len == 0) {
+      // Successful mg_ota_end() called, schedule device reboot
+      mg_timer_add(c->mgr, 500, 0, (void (*)(void*)) mg_device_reset, NULL);
+    }
+  }
+}
+
+static void handle_firmware_commit(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "%s\n",
+    mg_ota_commit() ? "true" : "false");
+}
+
+static void handle_firmware_rollback(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "%s\n",
+    mg_ota_rollback() ? "true" : "false");
+}
+
+static size_t print_status(void (*out)(char, void*), void* ptr, va_list* ap) {
+  int fw = va_arg(*ap, int);
+  return mg_xprintf(out, ptr, "{%m:%d,%m:%c%lx%c,%m:%u,%m:%u}\n",
+    MG_ESC("status"), mg_ota_status(fw), MG_ESC("crc32"), '"',
+    mg_ota_crc32(fw), '"', MG_ESC("size"), mg_ota_size(fw),
+    MG_ESC("timestamp"), mg_ota_timestamp(fw));
+}
+
+static void handle_firmware_status(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "[%M,%M]\n", print_status,
+    MG_FIRMWARE_CURRENT, print_status, MG_FIRMWARE_PREVIOUS);
+}
+
+static void handle_device_reset(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "true\n");
+  mg_timer_add(c->mgr, 500, 0, (void (*)(void*)) mg_device_reset, NULL);
+}
+
 
 // HTTP request handler function
 static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
@@ -91,6 +163,21 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
       // Websocket connection, which will receive MG_EV_WS_MSG events.
       mg_ws_upgrade(c, hm, NULL);
       MG_INFO(("WS connect %lu", c->id));
+    }
+    else if (mg_http_match_uri(hm, "/api/firmware/upload")) {
+      handle_firmware_upload(c, hm);
+    }
+    else if (mg_http_match_uri(hm, "/api/firmware/commit")) {
+      handle_firmware_commit(c);
+    }
+    else if (mg_http_match_uri(hm, "/api/firmware/rollback")) {
+      handle_firmware_rollback(c);
+    }
+    else if (mg_http_match_uri(hm, "/api/firmware/status")) {
+      handle_firmware_status(c);
+    }
+    else if (mg_http_match_uri(hm, "/api/device/reset")) {
+      handle_device_reset(c);
     }
     else {
       // handle /home as /

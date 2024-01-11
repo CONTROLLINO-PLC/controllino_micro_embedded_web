@@ -7,10 +7,10 @@
 #pragma once
 
 /**
- * \file net.h
+ * \file webapp.h
  *
  * Web embedded application difinitions using mongoose
- * Based on mongoose device-dashboard example (Copyright (c) 2023 Cesanta Software Limited)
+ * Based on mongoose device-dashboard example
  *
  * \author Pedro Marquez @pmmarquez, CONTROLLINO Firmware Team
  */

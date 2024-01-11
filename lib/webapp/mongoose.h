@@ -71,13 +71,7 @@ extern "C" {
   // if the user did not specify an MG_ARCH, or specified a custom one, OR
   // we guessed a known IDE, pull the customized config (Configuration Wizard)
 #if !defined(MG_ARCH) || (MG_ARCH == MG_ARCH_CUSTOM) || MG_ARCH == MG_ARCH_ARMCC
-#ifdef __cplusplus
-}
-#endif
 #include "mongoose_custom.h"  // keep this include
-#ifdef __cplusplus
-extern "C" {
-#endif
 #endif
 
 #if !defined(MG_ARCH)

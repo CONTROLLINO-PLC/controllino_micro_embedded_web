@@ -6,7 +6,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "net.h"
+#include "webapp.h"
 
 #ifdef CONTROLLINO_MICRO_RS485
 #include <ArduinoRS485.h>
