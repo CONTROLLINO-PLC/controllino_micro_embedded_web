@@ -66,6 +66,16 @@ const classes = {
 };
 
 function FormFirmware(props) {
+
+    const [status, setStatus] = useState('NOT_COMMITED');
+    const [crc32, setCrc32] = useState('9ec4ace4');
+    const [size, setSize] = useState('84520');
+    const [flached, setFlached] = useState('24/09/2023, 18:01:04');
+    const [status_2, setStatus_2] = useState('COMMITED');
+    const [crc32_2, setCrc32_2] = useState('0');
+    const [size_2, setSize_2] = useState('0');
+    const [flached_2, setFlached_2] = useState('01/01/1970, 01:00:00');
+    
     const handleClick = useCallback((event) => {
         props.onClick(event.target.id);
       }, []);
@@ -75,15 +85,6 @@ function FormFirmware(props) {
         const parsedData = JSON.parse(props.data)[2];
         
       }, [props.data]);
-
-      const [status, setStatus] = useState('NOT_COMMITED');
-      const [crc32, setCrc32] = useState('9ec4ace4');
-      const [size, setSize] = useState('84520');
-      const [flached, setFlached] = useState('24/09/2023, 18:01:04');
-      const [status_2, setStatus_2] = useState('COMMITED');
-      const [crc32_2, setCrc32_2] = useState('0');
-      const [size_2, setSize_2] = useState('0');
-      const [flached_2, setFlached_2] = useState('01/01/1970, 01:00:00');
 
     return (
         <div style={{display: 'flex', justifyContent: 'center', flexDirection: 'row'}}>
