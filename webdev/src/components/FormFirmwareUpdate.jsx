@@ -42,18 +42,20 @@ const classes = {
         borderBottom: 'solid grey 1px',
         color: 'white',
         fontSize: 17,
-        height: 40
+        height: 40,
+        fontFamily: "Roboto,Helvetica,Arial,sans-serif"
     },
     text: {
         display: 'flex',
         justifyContent: 'left',
         flexDirection: 'column',
         color: 'white',
-        fontSize: 14,
     },
     info:{
         fontSize: 16,
         marginBottom: 6,
+        fontWeight: 'blond',
+        fontFamily: "Roboto,Helvetica,Arial,sans-serif"
     },
     icon:{
         color: 'black',
