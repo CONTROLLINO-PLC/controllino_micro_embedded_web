@@ -13,8 +13,6 @@ const classes = {
         border: 'solid grey 1px',
         width: 600,
         color: 'grey',
-        display: 'flex',
-        flexDirection: 'row',
         backgroundColor: '#3C3D3C'
     },
     container2: {
@@ -24,8 +22,6 @@ const classes = {
         border: 'solid grey 1px',
         width: 600,
         color: 'grey',
-        display: 'flex',
-        flexDirection: 'row',
         backgroundColor: '#3C3D3C'
     },
       button: {
@@ -43,7 +39,7 @@ const classes = {
         color: 'white',
         fontSize: 17,
         height: 40,
-        fontFamily: "Roboto,Helvetica,Arial,sans-serif"
+        fontFamily: 'Roboto,Helvetica,Arial,sans-serif'
     },
     text: {
         display: 'flex',
@@ -55,7 +51,7 @@ const classes = {
         fontSize: 16,
         marginBottom: 6,
         fontWeight: 'blond',
-        fontFamily: "Roboto,Helvetica,Arial,sans-serif"
+        fontFamily: 'Roboto,Helvetica,Arial,sans-serif',
     },
     icon:{
         color: 'black',
@@ -147,6 +143,7 @@ function FormFirmware(props) {
                 </Grid>
 
             </Grid>
+            
 
             <Grid container spacing={2} style={classes.container2}>
 
@@ -166,6 +163,10 @@ function FormFirmware(props) {
                     </div>
                 </Grid>
 
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+
                 <Grid container>
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
                         <Button onClick={handleClick} style={classes.button}
@@ -177,6 +178,9 @@ function FormFirmware(props) {
                         </Button>
                     </Grid>
                 </Grid>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
 
             </Grid>
         </div>
