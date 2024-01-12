@@ -210,6 +210,9 @@ function FormFirmware(props) {
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
 
                 <Grid container>
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
@@ -222,6 +225,7 @@ function FormFirmware(props) {
                         </Button>
                     </Grid>
                 </Grid>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
