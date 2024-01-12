@@ -52,7 +52,7 @@ const Home = ({ onLogout }) => {
 
   const handleClick = useCallback((data) => {
     socket.send(JSON.stringify(data));
-    console.log(JSON.stringify(data))
+    console.log(JSON.stringify(data));
   }, [])
 
   useEffect(() => {

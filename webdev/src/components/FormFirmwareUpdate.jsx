@@ -64,8 +64,8 @@ const classes = {
 };
 
 function FormFirmware(props) {
-    const handleClick = useCallback(() => {
-
+    const handleClick = useCallback((event) => {
+        props.onClick(event.target.id);
       }, []);
 
     useEffect(() => {
@@ -97,7 +97,9 @@ function FormFirmware(props) {
                 <Grid container>
                     <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
                         <Button onClick={handleClick} style={classes.button}
-                            variant='contained'>
+                            variant='contained'
+                            id='commit'    
+                        >
                             Commit this firmware
                             <ThumbUpAlt style={classes.icon}/>
                         </Button>
@@ -105,7 +107,9 @@ function FormFirmware(props) {
 
                     <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
                         <Button onClick={handleClick} style={classes.button}
-                            variant='contained'>
+                            variant='contained'
+                            id='reboot0'    
+                        >
                             Reboot device
                             <Loop style={classes.icon}/>
                         </Button>
@@ -113,7 +117,9 @@ function FormFirmware(props) {
 
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                         <Button onClick={handleClick} style={classes.button}
-                            variant='contained'>
+                            variant='contained'
+                            id='upload'
+                        >
                             Upload new firmware: choose .bin file
                             <GetApp style={classes.icon}/>
                         </Button>
@@ -151,7 +157,9 @@ function FormFirmware(props) {
                 <Grid container>
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
                         <Button onClick={handleClick} style={classes.button}
-                            variant='contained'>
+                            variant='contained'
+                            id='rollback'
+                        >
                             Rollback to this firmware
                             <FastRewind style={classes.icon}/>
                         </Button>
