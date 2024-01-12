@@ -43,7 +43,7 @@ body {
 
 .MuiSvgIcon-fontSizeMedium {
   color: yellow;
-  font-size: 30px !important;
+  font-size: 30px;
 }
 
 .MuiSelect-icon{

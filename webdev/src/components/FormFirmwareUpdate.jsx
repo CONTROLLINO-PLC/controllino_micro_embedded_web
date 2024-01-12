@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect } from 'react';
 import {Grid} from '@mui/material';
 import Button from '@mui/material/Button';
+import ThumbUpAlt from '@mui/icons-material/ThumbUpAlt';
+import Loop from '@mui/icons-material/Loop';
+import GetApp from '@mui/icons-material/GetApp';
+import FastRewind from '@mui/icons-material/FastRewind'
 
 const classes = {
     container1: {
-        marginTop : 10,
-        borderRadius: '3px',
+        marginTop : 15,
+        borderRadius: '5px',
         border: 'solid grey 1px',
         width: 600,
         color: 'grey',
@@ -14,9 +18,9 @@ const classes = {
         backgroundColor: '#3C3D3C'
     },
     container2: {
-        marginTop : 10,
-        marginLeft: 10,
-        borderRadius: '3px',
+        marginTop : 15,
+        marginLeft: 15,
+        borderRadius: '5px',
         border: 'solid grey 1px',
         width: 600,
         color: 'grey',
@@ -25,7 +29,7 @@ const classes = {
         backgroundColor: '#3C3D3C'
     },
       button: {
-        borderRadius: '3px', 
+        borderRadius: '5px', 
         background: 'yellow', 
         color: '#000000',
         width: '86%',
@@ -49,7 +53,12 @@ const classes = {
     },
     info:{
         fontSize: 16,
-        marginBottom: 6
+        marginBottom: 6,
+    },
+    icon:{
+        color: 'black',
+        fontSize: 23,
+        margin: 8
     }
 
 };
@@ -90,6 +99,7 @@ function FormFirmware(props) {
                         <Button onClick={handleClick} style={classes.button}
                             variant='contained'>
                             Commit this firmware
+                            <ThumbUpAlt style={classes.icon}/>
                         </Button>
                     </Grid>
 
@@ -97,6 +107,7 @@ function FormFirmware(props) {
                         <Button onClick={handleClick} style={classes.button}
                             variant='contained'>
                             Reboot device
+                            <Loop style={classes.icon}/>
                         </Button>
                     </Grid>
 
@@ -104,6 +115,7 @@ function FormFirmware(props) {
                         <Button onClick={handleClick} style={classes.button}
                             variant='contained'>
                             Upload new firmware: choose .bin file
+                            <GetApp style={classes.icon}/>
                         </Button>
                     </Grid>
 
@@ -137,10 +149,11 @@ function FormFirmware(props) {
                 </Grid>
 
                 <Grid container>
-                    <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
+                    <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
                         <Button onClick={handleClick} style={classes.button}
                             variant='contained'>
                             Rollback to this firmware
+                            <FastRewind style={classes.icon}/>
                         </Button>
                     </Grid>
                 </Grid>
