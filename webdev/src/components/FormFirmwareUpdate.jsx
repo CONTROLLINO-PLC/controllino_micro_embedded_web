@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {Grid} from '@mui/material';
 import Button from '@mui/material/Button';
 import ThumbUpAlt from '@mui/icons-material/ThumbUpAlt';
@@ -76,6 +76,15 @@ function FormFirmware(props) {
         
       }, [props.data]);
 
+      const [status, setStatus] = useState('NOT_COMMITED');
+      const [crc32, setCrc32] = useState('9ec4ace4');
+      const [size, setSize] = useState('84520');
+      const [flached, setFlached] = useState('24/09/2023, 18:01:04');
+      const [status_2, setStatus_2] = useState('COMMITED');
+      const [crc32_2, setCrc32_2] = useState('0');
+      const [size_2, setSize_2] = useState('0');
+      const [flached_2, setFlached_2] = useState('01/01/1970, 01:00:00');
+
     return (
         <div style={{display: 'flex', justifyContent: 'center', flexDirection: 'row'}}>
             <Grid container spacing={2} style={classes.container1}>
@@ -86,13 +95,13 @@ function FormFirmware(props) {
 
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={classes.text}>
                     <div style={classes.info}>
-                        <div>Status: NOT_COMMITED</div>
+                        <div>{`Status: ${status}`}</div>
 
-                        <div>CRC32: 9ec4ace4</div>
+                        <div>{`CRC32: ${crc32}`}</div>
 
-                        <div>Size: 84520</div>
+                        <div>{`Size: ${size}`}</div>
 
-                        <div>Flached at: 24/09/2023, 18:01:04</div>
+                        <div>{`Flached at: ${flached}`}</div>
                     </div>
                 </Grid>
 
@@ -146,13 +155,13 @@ function FormFirmware(props) {
 
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={classes.text}>
                     <div style={classes.info}>
-                        <div>Status: COMMITED</div>
+                        <div>{`Status: ${status_2}`}</div>
 
-                        <div>CRC32: 0</div>
+                        <div>{`CRC32: ${crc32_2}`}</div>
 
-                        <div>Size: 0</div>
+                        <div>{`Size: ${size_2}`}</div>
 
-                        <div>Flached at: 01/01/1970, 01:00:00</div>
+                        <div>{`Flached at: ${flached_2}`}</div>
                     </div>
                 </Grid>
 
