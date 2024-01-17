@@ -7,14 +7,14 @@
 #include "mongoose.h"
 
 /**
- * \file syscalls.c
+ * \file syscalls.cpp
  *
  * Mocking syscalls for mongoose.
  *
  * \author Pedro Marquez @pmmarquez, CONTROLLINO Firmware Team
  */
 
-int mkdir(const char *path, mode_t mode) {
+extern "C" int mkdir(const char *path, mode_t mode) {
   (void) path, (void) mode;
   return -1;
 }

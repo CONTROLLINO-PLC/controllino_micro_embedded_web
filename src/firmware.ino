@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <Arduino.h>
 #include <ArduinoJson.h>
-#include "webapp.h"
+#include <webapp.h>
 
 #ifdef CONTROLLINO_MICRO_RS485
 #include <ArduinoRS485.h>
@@ -241,13 +240,13 @@ extern void handleRxWs(const char* data, size_t len) {
 }
 
 // Update data over websocket
-extern void updateDataWs(void) {
+void updateDataWs(void) {
   // Update data
   DynamicJsonDocument txJson(1024);
   JsonArray data = txJson.to<JsonArray>();
   data[0]["serial"] = serialRx.c_str(); 
-  data[1]["tmcu"] = readBoardTemperature();
-  data[1]["vsply"] = (float)readVoltageSuply() / 1000.0F;
+  data[1]["tmcu"] = analogReadTemp(3.3F);
+  data[1]["vsply"] = readVoltageSuply() / 1000.0F;
   data[1]["tsens"] = readBoardTemperature();
   data[2]["ip"] = ipAddress;
   data[2]["gateway"] = gateway;

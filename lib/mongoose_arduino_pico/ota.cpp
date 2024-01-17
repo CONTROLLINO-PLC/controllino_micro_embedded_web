@@ -33,13 +33,13 @@ static uint32_t _crc32;
 
 #if MG_OTA == MG_OTA_CUSTOM
 
-void _write_fw_info(void) {
+extern "C" void _write_fw_info(void) {
     File f = LittleFS.open(FW_INFO_FILE, "w");
     f.write((uint8_t*)_fw_info, sizeof(_fw_info));
     f.close();
 }
 
-bool _read_fw_info(void) {
+extern "C" bool _read_fw_info(void) {
     File f = LittleFS.open(FW_INFO_FILE, "r");
     if (!f) {
         return false;
@@ -49,21 +49,21 @@ bool _read_fw_info(void) {
     return true;
 }
 
-void _reset_fw_info(int fw) {
+extern "C" void _reset_fw_info(int fw) {
     _fw_info[MG_FIRMWARE_CURRENT].status = MG_OTA_UNAVAILABLE;
     _fw_info[MG_FIRMWARE_CURRENT].size = 0;
     _fw_info[MG_FIRMWARE_CURRENT].crc32 = 0;
     _fw_info[MG_FIRMWARE_CURRENT].timestamp = 0;
 }
 
-bool mg_ota_begin(size_t new_firmware_size) {
+extern "C" bool mg_ota_begin(size_t new_firmware_size) {
     _reset_fw_info(MG_FIRMWARE_CURRENT);
     _write_fw_info();
     _crc32 = 0xffffffff;
     return Update.begin(new_firmware_size);
 }
 
-bool mg_ota_write(const void* buf, size_t len) {
+extern "C" bool mg_ota_write(const void* buf, size_t len) {
     // Update crc32
     uint8_t* data = (uint8_t*)buf;
     for (uint32_t i = 0; i < len; i++) {
@@ -84,7 +84,7 @@ bool mg_ota_write(const void* buf, size_t len) {
     return true;
 }
 
-bool mg_ota_end(void) {
+extern "C" bool mg_ota_end(void) {
     // End Updater
     if (!Update.end()) {
         return false;
@@ -106,7 +106,7 @@ bool mg_ota_end(void) {
     return true;
 }
 
-bool mg_ota_commit(void) {
+extern "C" bool mg_ota_commit(void) {
     // Commit firmware.bin to OTA command page
     picoOTA.begin();
     if (!picoOTA.addFile("firmware.bin")) {
@@ -120,34 +120,35 @@ bool mg_ota_commit(void) {
     return true;
 }
 
-int mg_ota_status(int fw) {
+extern "C" int mg_ota_status(int fw) {
     if (fw == MG_FIRMWARE_CURRENT) {
         return _fw_info[MG_FIRMWARE_CURRENT].status;
     }
     return _fw_info[MG_FIRMWARE_PREVIOUS].status;
 }
 
-uint32_t mg_ota_crc32(int fw) {
+extern "C" uint32_t mg_ota_crc32(int fw) {
     if (fw == MG_FIRMWARE_CURRENT) {
         return _fw_info[MG_FIRMWARE_CURRENT].crc32;
     }
     return _fw_info[MG_FIRMWARE_PREVIOUS].crc32;
 }
-uint32_t mg_ota_timestamp(int fw) {
+
+extern "C" uint32_t mg_ota_timestamp(int fw) {
     if (fw == MG_FIRMWARE_CURRENT) {
         return _fw_info[MG_FIRMWARE_CURRENT].timestamp;
     }
     return _fw_info[MG_FIRMWARE_PREVIOUS].timestamp;
 }
 
-size_t mg_ota_size(int fw) {
+extern "C" size_t mg_ota_size(int fw) {
     if (fw == MG_FIRMWARE_CURRENT) {
         return _fw_info[MG_FIRMWARE_CURRENT].size;
     }
     return _fw_info[MG_FIRMWARE_PREVIOUS].size;
 }
 
-MG_IRAM void mg_ota_boot(void) {
+extern "C" void mg_ota_boot(void) {
     // Try get fw info
     LittleFS.begin();
     if (!_read_fw_info()) {

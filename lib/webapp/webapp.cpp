@@ -19,11 +19,10 @@
 struct mg_mgr mgr;
 
 /* Ethernet W5500 SPI interface */
-#define SS_PIN PIN_SPI_SS_ETHERNET_LIB    // Slave select pin
 struct mg_tcpip_spi spi = {
     NULL,                                               // SPI data
-    [](void*) { digitalWrite(SS_PIN, LOW); },          // begin transation
-    [](void*) { digitalWrite(SS_PIN, HIGH); },         // end transaction
+    [](void*) { digitalWrite(PIN_SPI_SS_ETHERNET_LIB, LOW); },          // begin transation
+    [](void*) { digitalWrite(PIN_SPI_SS_ETHERNET_LIB, HIGH); },         // end transaction
     [](void*, uint8_t c) { return SPI.transfer(c); },  // execute transaction
 };
 
@@ -234,7 +233,8 @@ void web_init(struct mg_mgr* mgr) {
 void webAppInit()
 {
   // Setup SPI
-  pinMode(SS_PIN, OUTPUT);
+  pinMode(PIN_SPI_SS_ETHERNET_LIB, OUTPUT);
+  digitalWrite(PIN_SPI_SS_ETHERNET_LIB, HIGH);
   SPI.begin();
 
   // Get unique board id
