@@ -3,9 +3,8 @@ import {Grid} from '@mui/material';
 import Button from '@mui/material/Button';
 import ThumbUpAlt from '@mui/icons-material/ThumbUpAlt';
 import Loop from '@mui/icons-material/Loop';
-import GetApp from '@mui/icons-material/GetApp';
 import FastRewind from '@mui/icons-material/FastRewind';
-import Search from '@mui/icons-material/Search';
+import Upload from './UploadFileButton';
 
 const classes = {
     container1: {
@@ -84,37 +83,12 @@ function FormFirmware(props) {
 
     const [selectedFile, setSelectedFile] = useState();
 
-    const handleFileSelect = (event) => {
-      setSelectedFile(event.target.files[0]);
-      console.log(event.target.files[0])
-      };
-
 
     useEffect(() => {
         if (!props.data) return;
         const parsedData = JSON.parse(props.data)[2];
         
       }, [props.data]);
-
-      const handleUpload = async () => {
-        let formData = new FormData();
-        formData.append("file", selectedFile);
-        try {
-            let response = await fetch("http://127.0.0.1:1880/upload", {
-                method: "POST",
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error! status: ${response.status}`);
-            }
-
-            let result = await response.json();
-            console.log(result);
-            } catch (error) {
-            console.log(error);
-            }
-            };
 
     return (
         <div style={{display: 'flex', justifyContent: 'center', flexDirection: 'row'}}>
@@ -159,31 +133,13 @@ function FormFirmware(props) {
 
                     <Grid container spacing={1}>
 
-                    <Grid item xs={4} sm={4} md={4} lg={4} xl={1} style={classes.browse}>
-                        {/* <label  htmlFor="file-upload" className="custom-file-upload">
-                            <Search style={classes.icon}/>
-                        </label> */}
-                        <input id="file-upload" type="file" accept=".bin" onChange={handleFileSelect}/>
-                    </Grid>
+
 
                     <Grid item xs={8} sm={8} md={8} lg={8} xl={12}>
-                        <Button onClick={handleUpload} style={classes.button}
-                            variant='contained'
-                            id='upload'
-                        >
-                            Upload new firmware: choose .bin file
-                        <GetApp style={classes.icon}/>
-                        </Button>
+                        <Upload/>
                     </Grid>
                     </Grid>
 
-                </Grid>
-
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={classes.text}>
-                <div style={classes.info}>
-                    <div>Uploading firmware .bin, bytes 84520 .. 84520 of 84520.</div>
-                    <div>Done, resetting device...</div>
-                </div>
                 </Grid>
 
             </Grid>
