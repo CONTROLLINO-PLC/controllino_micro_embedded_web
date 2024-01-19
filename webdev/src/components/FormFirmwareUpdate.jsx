@@ -77,12 +77,19 @@ function FormFirmware(props) {
     const [size_2, setSize_2] = useState('0');
     const [flached_2, setFlached_2] = useState('01/01/1970, 01:00:00');
     
-    const handleClick = useCallback((event) => {
-        props.onClick(event.target.id);
-      }, []);
+    // const handleClick = useCallback((event) => {
+    //     props.onClick(event.target.id);
+    //   }, []);
 
-    const [selectedFile, setSelectedFile] = useState();
+    const oncommit = ev => fetch('/api/firmware/commit')
+    .then(r => r.json())
 
+    const onreboot = ev => fetch('/api/device/reset')
+    .then(r => r.json())
+    .then(r => new Promise(r => setTimeout(ev => { r(); }, 3000)));
+
+    const onrollback = ev => fetch('/api/firmware/rollback')
+    .then(onreboot);
 
     useEffect(() => {
         if (!props.data) return;
@@ -112,7 +119,7 @@ function FormFirmware(props) {
 
                 <Grid container>
                     <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
-                        <Button onClick={handleClick} style={classes.button}
+                        <Button onClick={oncommit} style={classes.button}
                             variant='contained'
                             id='commit'    
                         >
@@ -122,7 +129,7 @@ function FormFirmware(props) {
                     </Grid>
 
                     <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
-                        <Button onClick={handleClick} style={classes.button}
+                        <Button onClick={onreboot} style={classes.button}
                             variant='contained'
                             id='reboot0'    
                         >
@@ -172,7 +179,7 @@ function FormFirmware(props) {
 
                 <Grid container>
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
-                        <Button onClick={handleClick} style={classes.button}
+                        <Button onClick={onrollback} style={classes.button}
                             variant='contained'
                             id='rollback'
                         >

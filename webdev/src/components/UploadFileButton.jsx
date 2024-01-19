@@ -94,7 +94,7 @@ function UploadFileButton() {
     let r = new FileReader(), f = ev.target.files[0];
     r.readAsArrayBuffer(f);
     r.onload = function() {
-      setUpload(sendFileData('http://127.0.0.1:1880/api/firmware/upload', f.name, new Uint8Array(r.result), 2048));
+      setUpload(sendFileData('/api/firmware/upload', f.name, new Uint8Array(r.result), 2048));
       ev.target.value = '';
       ev.preventDefault();
     if (btn.current) btn.current.click();
