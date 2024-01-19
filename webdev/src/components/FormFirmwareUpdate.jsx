@@ -158,6 +158,8 @@ function FormFirmware(props) {
                     PREVIOUS FIRMWARE IMAGE
                 </Grid>
 
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
+
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={classes.text}>
                     <div style={classes.info}>
                         <div>{`Status: ${status_2}`}</div>
@@ -170,9 +172,6 @@ function FormFirmware(props) {
                     </div>
                 </Grid>
 
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}/>
