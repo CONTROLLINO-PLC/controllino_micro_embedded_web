@@ -97,12 +97,13 @@ extern "C" bool mg_ota_end(void) {
     _fw_info[MG_FIRMWARE_CURRENT].timestamp = f.getCreationTime();
     _fw_info[MG_FIRMWARE_CURRENT].size = f.size();
     _fw_info[MG_FIRMWARE_CURRENT].crc32 = _crc32;
-    _fw_info[MG_FIRMWARE_CURRENT].status = MG_OTA_UNCOMMITTED;
+    _fw_info[MG_FIRMWARE_CURRENT].status = MG_OTA_COMMITTED;
     f.close();
     _write_fw_info();
+    Serial.printf("OTA: %s, %lu, %lu, %lu\n", "firmware.bin", _fw_info[MG_FIRMWARE_CURRENT].timestamp, _fw_info[MG_FIRMWARE_CURRENT].size, _fw_info[MG_FIRMWARE_CURRENT].crc32);
     // Reset OTA comand page to avoid commited firmware.bin in Update.end()
-    picoOTA.begin();
-    picoOTA.commit();
+    // picoOTA.begin();
+    // picoOTA.commit();
     return true;
 }
 
@@ -167,6 +168,7 @@ extern "C" void mg_ota_boot(void) {
             break;
         case MG_OTA_FIRST_BOOT:
             // Copy firmware.bin to firmware.old.bin to set previous fw
+            LittleFS.remove("firmware.old.bin");
             if (LittleFS.rename("firmware.bin", "firmware.old.bin")) {
                 _fw_info[MG_FIRMWARE_PREVIOUS] = _fw_info[MG_FIRMWARE_CURRENT];
                 _fw_info[MG_FIRMWARE_PREVIOUS].status = MG_OTA_COMMITTED;

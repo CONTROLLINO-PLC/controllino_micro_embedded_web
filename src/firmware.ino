@@ -286,11 +286,20 @@ void updateDataWs(void) {
   serialRx = "";
 }
 
+const long ledinterval = 200;
+long ledtimer = 0;
+extern "C" void mg_ota_boot(void);
+
 void setup() {
+  // bootstrap OTA
+  mg_ota_boot();
+
   // Initialize serial port
   Serial.begin(115200);
   // while (!Serial);
   // delay(2000);
+
+  pinMode(LED_BUILTIN, OUTPUT);
 
   // Init inputs
   for (int i = 0; i < 10; i++) {
@@ -326,4 +335,9 @@ void loop() {
   microCANRx();
   microCANTx();
 #endif
+
+  if (millis() - ledtimer > ledinterval) {
+    ledtimer = millis();
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  }
 }
