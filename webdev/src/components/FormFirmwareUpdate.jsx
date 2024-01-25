@@ -86,7 +86,12 @@ function FormFirmware(props) {
 
     const onreboot = ev => fetch('/api/device/reset')
     .then(r => r.json())
-    .then(r => new Promise(r => setTimeout(ev => { r(); }, 3000)));
+    .then(() => {
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    })
+    .catch(error => console.error('Error:', error));
 
     const onrollback = ev => fetch('/api/firmware/rollback')
     .then(onreboot);
