@@ -68,26 +68,47 @@ const classes = {
 
 function FormFirmware(props) {
 
-    const [status, setStatus] = useState('NOT_COMMITED');
-    const [crc32, setCrc32] = useState('9ec4ace4');
-    const [size, setSize] = useState('84520');
-    const [flached, setFlached] = useState('24/09/2023, 18:01:04');
-    const [status_2, setStatus_2] = useState('COMMITED');
-    const [crc32_2, setCrc32_2] = useState('0');
-    const [size_2, setSize_2] = useState('0');
-    const [flached_2, setFlached_2] = useState('01/01/1970, 01:00:00');
+    const [status, setStatus] = useState('');
+    const [crc32, setCrc32] = useState('');
+    const [size, setSize] = useState('');
+    const [flached, setFlached] = useState('');
+    const [status_2, setStatus_2] = useState('');
+    const [crc32_2, setCrc32_2] = useState('');
+    const [size_2, setSize_2] = useState('');
+    const [flached_2, setFlached_2] = useState('');
+    const status_array = ['MG_OTA_UNAVAILABLE', 'MG_OTA_FIRST_BOOT', 'MG_OTA_UNCOMMITTED', 'MG_OTA_COMMITTED'];
     
     // const handleClick = useCallback((event) => {
     //     props.onClick(event.target.id);
     //   }, []);
 
+    const onstatus = ev => fetch('/api/firmware/status')
+    .then(r => r.json())
+    .then(r => {
+        r.forEach((item, index) => {
+            if(index === 0){
+                setStatus(status_array[item.status]);
+                setCrc32(item.crc32);
+                setSize(item.size);
+                setFlached(item.timestamp);
+            }else{
+                setStatus_2(status_array[item.status]);
+                setCrc32_2(item.crc32);
+                setSize_2(item.size);
+                setFlached_2(item.timestamp);
+            }
+        });
+    });
+
     const oncommit = ev => fetch('/api/firmware/commit')
     .then(r => r.json())
+    .then(onstatus);
 
     const onreboot = ev => fetch('/api/device/reset')
     .then(r => r.json())
     .then(() => {
         setTimeout(() => {
+            onstatus()
             window.location.reload();
         }, 1000);
     })
@@ -101,6 +122,10 @@ function FormFirmware(props) {
         const parsedData = JSON.parse(props.data)[2];
         
       }, [props.data]);
+
+    useEffect(() => {
+        onstatus();
+    }, []);
 
     return (
         <div style={{display: 'flex', justifyContent: 'center', flexDirection: 'row'}}>
@@ -148,7 +173,7 @@ function FormFirmware(props) {
 
 
                     <Grid item xs={8} sm={8} md={8} lg={8} xl={12}>
-                        <Upload/>
+                        <Upload onExecuteParentFunction={onstatus}/>
                     </Grid>
                     </Grid>
 

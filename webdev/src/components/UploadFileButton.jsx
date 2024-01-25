@@ -40,7 +40,7 @@ const classes = {
 
 };
 
-function UploadFileButton() {
+function UploadFileButton({ onExecuteParentFunction }) {
  const [upload, setUpload] = useState(null); // Upload promise
  const [status, setStatus] = useState('');   // Current upload status
  const btn = useRef(null);
@@ -48,7 +48,7 @@ function UploadFileButton() {
 
  const onupload = function(ok, name, size) {
     if (!ok) return false;
-    return new Promise(r => setTimeout(ev => { r(); }, 3000));
+    onExecuteParentFunction();
   };
 
   // Send a large file chunk by chunk
@@ -81,7 +81,7 @@ function UploadFileButton() {
           .then(function(text) {
             if (!ok) setStatus('Error: ' + text), finish(ok); // Fail
             if (chunk.length > 0) return; // More chunks to send
-            setStatus(x => x + '. Done, resetting device...');
+            setStatus(x => x + '. Done !!!');
             finish(ok); // All chunks sent
           });
       };
