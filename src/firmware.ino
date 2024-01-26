@@ -15,6 +15,18 @@
 #include <CAN.h>
 #endif
 
+#define LED_BLINK // Comment this line to disable LED blink
+#ifdef LED_BLINK
+#define LED_BLINK_INTERVAL 1000 // ms
+uint32_t ledBlinkTimer = 0;
+void ledBlink() {
+  if (millis() - ledBlinkTimer > LED_BLINK_INTERVAL) {
+    ledBlinkTimer = millis();
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  }
+}
+#endif
+
 // Board connection data
 char macAddress[18];
 char ipAddress[16];
@@ -286,20 +298,15 @@ void updateDataWs(void) {
   serialRx = "";
 }
 
-const long ledinterval = 200;
-long ledtimer = 0;
-extern "C" void mg_ota_boot(void);
-
 void setup() {
-  // bootstrap OTA
-  mg_ota_boot();
-
   // Initialize serial port
   Serial.begin(115200);
   // while (!Serial);
   // delay(2000);
 
+#ifdef LED_BLINK
   pinMode(LED_BUILTIN, OUTPUT);
+#endif
 
   // Init inputs
   for (int i = 0; i < 10; i++) {
@@ -336,8 +343,7 @@ void loop() {
   microCANTx();
 #endif
 
-  if (millis() - ledtimer > ledinterval) {
-    ledtimer = millis();
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  }
+#ifdef LED_BLINK
+  ledBlink();
+#endif
 }

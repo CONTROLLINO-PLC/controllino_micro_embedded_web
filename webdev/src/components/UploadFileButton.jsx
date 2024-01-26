@@ -70,8 +70,8 @@ function UploadFileButton({ onExecuteParentFunction }) {
           '&total=' + fileData.length  +
           '&name=' + encodeURIComponent(fileName);
         var ok;
-        setStatus('Uploading ' + fileName + ', bytes ' + offset + '..' +
-          (offset + chunk.length) + ' of ' + fileData.length);
+        setStatus('Uploading ' + fileName + ', bytes ' + offset + /*'..' +
+          (offset + chunk.length) + */' of ' + fileData.length);
         fetch(fullUrl, opts)
           .then(function(res) {
             if (res.ok && chunk.length > 0) sendChunk(offset + chunk.length);
@@ -81,7 +81,7 @@ function UploadFileButton({ onExecuteParentFunction }) {
           .then(function(text) {
             if (!ok) setStatus('Error: ' + text), finish(ok); // Fail
             if (chunk.length > 0) return; // More chunks to send
-            setStatus(x => x + '. Done !!!');
+            setStatus(x => x + '. Done!');
             finish(ok); // All chunks sent
           });
       };

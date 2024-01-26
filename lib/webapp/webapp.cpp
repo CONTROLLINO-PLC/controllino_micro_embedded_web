@@ -117,8 +117,8 @@ static void handle_firmware_upload(struct mg_connection* c,
   else {
     mg_http_reply(c, 200, s_json_header, "true\n");
     if (data.len == 0) {
-      // Successful mg_ota_end() called, schedule device reboot
-      mg_timer_add(c->mgr, 500, 0, (void (*)(void*)) mg_device_reset, NULL);
+      // Successful mg_ota_end()
+      MG_INFO(("firmware.bin uploaded crc32:%u size:%u", mg_ota_crc32(MG_FIRMWARE_CURRENT), mg_ota_size(MG_FIRMWARE_CURRENT)));
     }
   }
 }
@@ -150,7 +150,6 @@ static void handle_device_reset(struct mg_connection* c) {
   mg_http_reply(c, 200, s_json_header, "true\n");
   mg_timer_add(c->mgr, 500, 0, (void (*)(void*)) mg_device_reset, NULL);
 }
-
 
 // HTTP request handler function
 static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
@@ -218,20 +217,15 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
   (void)fn_data;
 }
 
-void web_init(struct mg_mgr* mgr) {
-  // Serve HTTP on HTTP_URL
-  mg_http_listen(mgr, HTTP_URL, handle_http, NULL);
-
-  mg_timer_add(mgr, 3600 * 1000, MG_TIMER_RUN_NOW | MG_TIMER_REPEAT,
-    timer_sntp_fn, mgr);
-
-  MG_INFO(("HTTP listener on %s", HTTP_URL));
-  MG_INFO(("WS listen on %s/ws", HTTP_URL));
-}
+// OTA init function
+extern "C" void mg_ota_boot(void);
 
 /* Init Web application */
 void webAppInit()
 {
+  // Bootstrap OTA
+  mg_ota_boot();
+
   // Setup SPI
   pinMode(PIN_SPI_SS_ETHERNET_LIB, OUTPUT);
   digitalWrite(PIN_SPI_SS_ETHERNET_LIB, HIGH);
@@ -276,8 +270,13 @@ void webAppInit()
   uint8_t* mask = (uint8_t*)&mif.mask;
   sprintf(subnetMask, "%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]);
 
-  MG_INFO(("Initialising app..."));
-  web_init(&mgr);
+  // Serve HTTP on HTTP_URL
+  mg_http_listen(&mgr, HTTP_URL, handle_http, NULL);
+
+  mg_timer_add(&mgr, 3600 * 1000, MG_TIMER_RUN_NOW | MG_TIMER_REPEAT, timer_sntp_fn, &mgr);
+
+  MG_INFO(("HTTP listener on %s", HTTP_URL));
+  MG_INFO(("WS listen on %s/ws", HTTP_URL));
 }
 
 void webAppRun()

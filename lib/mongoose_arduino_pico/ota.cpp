@@ -97,13 +97,12 @@ extern "C" bool mg_ota_end(void) {
     _fw_info[MG_FIRMWARE_CURRENT].timestamp = f.getCreationTime();
     _fw_info[MG_FIRMWARE_CURRENT].size = f.size();
     _fw_info[MG_FIRMWARE_CURRENT].crc32 = _crc32;
-    _fw_info[MG_FIRMWARE_CURRENT].status = MG_OTA_COMMITTED;
+    _fw_info[MG_FIRMWARE_CURRENT].status = MG_OTA_UNCOMMITTED;
     f.close();
     _write_fw_info();
-    Serial.printf("OTA: %s, %lu, %lu, %lu\n", "firmware.bin", _fw_info[MG_FIRMWARE_CURRENT].timestamp, _fw_info[MG_FIRMWARE_CURRENT].size, _fw_info[MG_FIRMWARE_CURRENT].crc32);
     // Reset OTA comand page to avoid commited firmware.bin in Update.end()
-    // picoOTA.begin();
-    // picoOTA.commit();
+    picoOTA.begin();
+    picoOTA.commit();
     return true;
 }
 
@@ -118,6 +117,7 @@ extern "C" bool mg_ota_commit(void) {
     }
     // Change status to committed
     _fw_info[MG_FIRMWARE_CURRENT].status = MG_OTA_COMMITTED;
+    _write_fw_info();
     return true;
 }
 
@@ -182,17 +182,17 @@ extern "C" void mg_ota_boot(void) {
 }
 
 bool mg_ota_rollback(void) {
-    // Rollback firmware.bin to firmware.old.bin
+    // Rollback to firmware.old.bin
+    picoOTA.begin();
+    if (!picoOTA.addFile("firmware.old.bin")) {
+        return false;
+    }
+    if (!picoOTA.commit()) {
+        return false;
+    }
+    // Reset current fw
     LittleFS.remove("firmware.bin");
-    if (!LittleFS.rename("firmware.old.bin", "firmware.bin")) {
-        return false;
-    }
-    if (!mg_ota_commit()) {
-        return false;
-    }
-    _fw_info[MG_FIRMWARE_CURRENT] = _fw_info[MG_FIRMWARE_PREVIOUS];
-    _fw_info[MG_FIRMWARE_CURRENT].status = MG_OTA_COMMITTED;
-    _reset_fw_info(MG_FIRMWARE_PREVIOUS);
+    _reset_fw_info(MG_FIRMWARE_CURRENT);
     _write_fw_info();
     return true;
 }
