@@ -43,7 +43,7 @@ body {
 
 .MuiSvgIcon-fontSizeMedium {
   color: yellow;
-  font-size: 30px !important;
+  font-size: 30px;
 }
 
 .MuiSelect-icon{
@@ -115,3 +115,14 @@ body {
   border: solid 3px grey !important;
   margin-top: 5px;
 }
+
+input[type="file"] {
+  /* display: none; */
+ }
+
+ .custom-file-upload {
+  background-color: yellow;
+  border-radius: 5px;
+  color: white;
+  padding: 10px 20px;
+ }

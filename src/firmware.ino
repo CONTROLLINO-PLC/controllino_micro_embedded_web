@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <Arduino.h>
 #include <ArduinoJson.h>
-#include "net.h"
+#include <webapp.h>
 
 #ifdef CONTROLLINO_MICRO_RS485
 #include <ArduinoRS485.h>
@@ -14,6 +13,18 @@
 
 #ifdef CONTROLLINO_MICRO_CAN
 #include <CAN.h>
+#endif
+
+#define LED_BLINK // Comment this line to disable LED blink
+#ifdef LED_BLINK
+#define LED_BLINK_INTERVAL 1000 // ms
+uint32_t ledBlinkTimer = 0;
+void ledBlink() {
+  if (millis() - ledBlinkTimer > LED_BLINK_INTERVAL) {
+    ledBlinkTimer = millis();
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  }
+}
 #endif
 
 // Board connection data
@@ -241,13 +252,13 @@ extern void handleRxWs(const char* data, size_t len) {
 }
 
 // Update data over websocket
-extern void updateDataWs(void) {
+void updateDataWs(void) {
   // Update data
   DynamicJsonDocument txJson(1024);
   JsonArray data = txJson.to<JsonArray>();
   data[0]["serial"] = serialRx.c_str(); 
-  data[1]["tmcu"] = readBoardTemperature();
-  data[1]["vsply"] = (float)readVoltageSuply() / 1000.0F;
+  data[1]["tmcu"] = analogReadTemp(3.3F);
+  data[1]["vsply"] = readVoltageSuply() / 1000.0F;
   data[1]["tsens"] = readBoardTemperature();
   data[2]["ip"] = ipAddress;
   data[2]["gateway"] = gateway;
@@ -293,6 +304,10 @@ void setup() {
   // while (!Serial);
   // delay(2000);
 
+#ifdef LED_BLINK
+  pinMode(LED_BUILTIN, OUTPUT);
+#endif
+
   // Init inputs
   for (int i = 0; i < 10; i++) {
     pinMode(inputs[i], INPUT);
@@ -326,5 +341,9 @@ void loop() {
 #ifdef CONTROLLINO_MICRO_CAN
   microCANRx();
   microCANTx();
+#endif
+
+#ifdef LED_BLINK
+  ledBlink();
 #endif
 }

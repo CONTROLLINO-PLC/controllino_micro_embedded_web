@@ -20,7 +20,7 @@
 #ifndef MONGOOSE_H
 #define MONGOOSE_H
 
-#define MG_VERSION "7.11"
+#define MG_VERSION "7.12"
 
 #ifdef __cplusplus
 extern "C" {
@@ -669,6 +669,10 @@ struct timeval {
 #define MG_ENABLE_LOG 1
 #endif
 
+#ifndef MG_ENABLE_CUSTOM_LOG
+#define MG_ENABLE_CUSTOM_LOG 0  // Let user define their own MG_LOG
+#endif
+
 #ifndef MG_ENABLE_TCPIP
 #define MG_ENABLE_TCPIP 0  // Mongoose built-in network stack
 #endif
@@ -707,6 +711,10 @@ struct timeval {
 
 #ifndef MG_ENABLE_IPV6
 #define MG_ENABLE_IPV6 0
+#endif
+
+#ifndef MG_IPV6_V6ONLY
+#define MG_IPV6_V6ONLY 0  // IPv6 socket binds only to V6, not V4 address
 #endif
 
 #ifndef MG_ENABLE_MD5
@@ -1016,6 +1024,7 @@ struct mg_str mg_unpacked(const char *path);  // Packed file as mg_str
 #define assert(x)
 #endif
 
+void mg_bzero(volatile unsigned char *buf, size_t len);
 void mg_random(void *buf, size_t len);
 char *mg_random_str(char *buf, size_t len);
 uint16_t mg_ntohs(uint16_t net);
@@ -1035,6 +1044,21 @@ uint64_t mg_now(void);     // Return milliseconds since Epoch
 #define MG_U8P(ADDR) ((uint8_t *) (ADDR))
 #define MG_IPADDR_PARTS(ADDR) \
   MG_U8P(ADDR)[0], MG_U8P(ADDR)[1], MG_U8P(ADDR)[2], MG_U8P(ADDR)[3]
+
+#define MG_REG(x) ((volatile uint32_t *) (x))[0]
+#define MG_BIT(x) (((uint32_t) 1U) << (x))
+#define MG_SET_BITS(R, CLRMASK, SETMASK) (R) = ((R) & ~(CLRMASK)) | (SETMASK)
+
+#define MG_ROUND_UP(x, a) ((a) == 0 ? (x) : ((((x) + (a) -1) / (a)) * (a)))
+#define MG_ROUND_DOWN(x, a) ((a) == 0 ? (x) : (((x) / (a)) * (a)))
+
+#ifdef __GNUC__
+#define MG_ARM_DISABLE_IRQ() asm volatile ("cpsid i" : : : "memory")
+#define MG_ARM_ENABLE_IRQ() asm volatile ("cpsie i" : : : "memory")
+#else
+#define MG_ARM_DISABLE_IRQ()
+#define MG_ARM_ENABLE_IRQ()
+#endif
 
 struct mg_addr;
 int mg_check_ip_acl(struct mg_str acl, struct mg_addr *remote_ip);
@@ -1125,26 +1149,25 @@ void mg_call(struct mg_connection *c, int ev, void *ev_data);
 void mg_error(struct mg_connection *c, const char *fmt, ...);
 
 enum {
-  MG_EV_ERROR,       // Error                        char *error_message
-  MG_EV_OPEN,        // Connection created           NULL
-  MG_EV_POLL,        // mg_mgr_poll iteration        uint64_t *uptime_millis
-  MG_EV_RESOLVE,     // Host name is resolved        NULL
-  MG_EV_CONNECT,     // Connection established       NULL
-  MG_EV_ACCEPT,      // Connection accepted          NULL
-  MG_EV_TLS_HS,      // TLS handshake succeeded      NULL
-  MG_EV_READ,        // Data received from socket    long *bytes_read
-  MG_EV_WRITE,       // Data written to socket       long *bytes_written
-  MG_EV_CLOSE,       // Connection closed            NULL
-  MG_EV_HTTP_MSG,    // HTTP request/response        struct mg_http_message *
-  MG_EV_HTTP_CHUNK,  // HTTP chunk (partial msg)     struct mg_http_message *
-  MG_EV_WS_OPEN,     // Websocket handshake done     struct mg_http_message *
-  MG_EV_WS_MSG,      // Websocket msg, text or bin   struct mg_ws_message *
-  MG_EV_WS_CTL,      // Websocket control msg        struct mg_ws_message *
-  MG_EV_MQTT_CMD,    // MQTT low-level command       struct mg_mqtt_message *
-  MG_EV_MQTT_MSG,    // MQTT PUBLISH received        struct mg_mqtt_message *
-  MG_EV_MQTT_OPEN,   // MQTT CONNACK received        int *connack_status_code
-  MG_EV_SNTP_TIME,   // SNTP time received           uint64_t *epoch_millis
-  MG_EV_USER         // Starting ID for user events
+  MG_EV_ERROR,      // Error                        char *error_message
+  MG_EV_OPEN,       // Connection created           NULL
+  MG_EV_POLL,       // mg_mgr_poll iteration        uint64_t *uptime_millis
+  MG_EV_RESOLVE,    // Host name is resolved        NULL
+  MG_EV_CONNECT,    // Connection established       NULL
+  MG_EV_ACCEPT,     // Connection accepted          NULL
+  MG_EV_TLS_HS,     // TLS handshake succeeded      NULL
+  MG_EV_READ,       // Data received from socket    long *bytes_read
+  MG_EV_WRITE,      // Data written to socket       long *bytes_written
+  MG_EV_CLOSE,      // Connection closed            NULL
+  MG_EV_HTTP_MSG,   // HTTP request/response        struct mg_http_message *
+  MG_EV_WS_OPEN,    // Websocket handshake done     struct mg_http_message *
+  MG_EV_WS_MSG,     // Websocket msg, text or bin   struct mg_ws_message *
+  MG_EV_WS_CTL,     // Websocket control msg        struct mg_ws_message *
+  MG_EV_MQTT_CMD,   // MQTT low-level command       struct mg_mqtt_message *
+  MG_EV_MQTT_MSG,   // MQTT PUBLISH received        struct mg_mqtt_message *
+  MG_EV_MQTT_OPEN,  // MQTT CONNACK received        int *connack_status_code
+  MG_EV_SNTP_TIME,  // SNTP time received           uint64_t *epoch_millis
+  MG_EV_USER        // Starting ID for user events
 };
 
 
@@ -1161,9 +1184,10 @@ struct mg_dns {
 };
 
 struct mg_addr {
-  uint8_t ip[16];  // Holds IPv4 or IPv6 address, in network byte order
-  uint16_t port;   // TCP or UDP port in network byte order
-  bool is_ip6;     // True when address is IPv6 address
+  uint8_t ip[16];    // Holds IPv4 or IPv6 address, in network byte order
+  uint16_t port;     // TCP or UDP port in network byte order
+  uint8_t scope_id;  // IPv6 scope ID
+  bool is_ip6;       // True when address is IPv6 address
 };
 
 struct mg_mgr {
@@ -1237,7 +1261,6 @@ bool mg_send(struct mg_connection *, const void *, size_t);
 size_t mg_printf(struct mg_connection *, const char *fmt, ...);
 size_t mg_vprintf(struct mg_connection *, const char *fmt, va_list *ap);
 bool mg_aton(struct mg_str str, struct mg_addr *addr);
-int mg_mkpipe(struct mg_mgr *, mg_event_handler_t, void *, bool udp);
 
 // These functions are used to integrate with custom network stacks
 struct mg_connection *mg_alloc_conn(struct mg_mgr *);
@@ -1270,7 +1293,6 @@ struct mg_http_message {
   struct mg_http_header headers[MG_MAX_HTTP_HEADERS];  // Headers
   struct mg_str body;                                  // Body
   struct mg_str head;                                  // Request + headers
-  struct mg_str chunk;    // Chunk for chunked encoding,  or partial body
   struct mg_str message;  // Request + headers + body
 };
 
@@ -1341,22 +1363,22 @@ void mg_http_serve_ssi(struct mg_connection *c, const char *root,
 
 
 struct mg_tls_opts {
-  struct mg_str client_ca;
-  struct mg_str server_ca;
-  struct mg_str server_cert;
-  struct mg_str server_key;
-  struct mg_str client_cert;
-  struct mg_str client_key;
+  struct mg_str ca;    // PEM or DER
+  struct mg_str cert;  // PEM or DER
+  struct mg_str key;   // PEM or DER
+  struct mg_str name;  // If not empty, enable host name verification
 };
 
-void mg_tls_ctx_init(struct mg_mgr *, const struct mg_tls_opts *);
-void mg_tls_ctx_free(struct mg_mgr *);
-void mg_tls_init(struct mg_connection *, struct mg_str hostname);
+void mg_tls_init(struct mg_connection *, const struct mg_tls_opts *opts);
 void mg_tls_free(struct mg_connection *);
 long mg_tls_send(struct mg_connection *, const void *buf, size_t len);
 long mg_tls_recv(struct mg_connection *, void *buf, size_t len);
 size_t mg_tls_pending(struct mg_connection *);
 void mg_tls_handshake(struct mg_connection *);
+
+// Private
+void mg_tls_ctx_init(struct mg_mgr *);
+void mg_tls_ctx_free(struct mg_mgr *);
 
 
 
@@ -1371,20 +1393,21 @@ void mg_tls_handshake(struct mg_connection *);
 #include <mbedtls/ssl_ticket.h>
 
 struct mg_tls_ctx {
-  mbedtls_x509_crt server_ca;     // Parsed CA certificate
-  mbedtls_x509_crt client_ca;     // Parsed CA certificate
-  mbedtls_x509_crt server_cert;   // Parsed server certificate
-  mbedtls_pk_context server_key;  // Parsed server private key context
-  mbedtls_x509_crt client_cert;   // Parsed client certificate
-  mbedtls_pk_context client_key;  // Parsed client private key context
+  int dummy;
 #ifdef MBEDTLS_SSL_SESSION_TICKETS
-  mbedtls_ssl_ticket_context ticket_ctx;  // Session tickets context
+  mbedtls_ssl_ticket_context tickets;
 #endif
 };
 
 struct mg_tls {
+  mbedtls_x509_crt ca;      // Parsed CA certificate
+  mbedtls_x509_crt cert;    // Parsed certificate
+  mbedtls_pk_context pk;    // Private key context
   mbedtls_ssl_context ssl;  // SSL/TLS context
   mbedtls_ssl_config conf;  // SSL-TLS config
+#ifdef MBEDTLS_SSL_SESSION_TICKETS
+  mbedtls_ssl_ticket_context ticket;  // Session tickets context
+#endif
 };
 #endif
 
@@ -1393,15 +1416,6 @@ struct mg_tls {
 
 #include <openssl/err.h>
 #include <openssl/ssl.h>
-
-struct mg_tls_ctx {
-  X509 *server_cert;
-  EVP_PKEY *server_key;
-  STACK_OF(X509_INFO) *server_ca;
-  X509 *client_cert;
-  EVP_PKEY *client_key;
-  STACK_OF(X509_INFO) *client_ca;
-};
 
 struct mg_tls {
   SSL_CTX *ctx;
@@ -1614,6 +1628,8 @@ char *mg_json_get_hex(struct mg_str json, const char *path, int *len);
 char *mg_json_get_b64(struct mg_str json, const char *path, int *len);
 
 bool mg_json_unescape(struct mg_str str, char *buf, size_t len);
+size_t mg_json_next(struct mg_str obj, size_t ofs, struct mg_str *key,
+                    struct mg_str *val);
 
 
 
@@ -1655,10 +1671,8 @@ void mg_rpc_list(struct mg_rpc_req *r);
 
 
 #define MG_OTA_NONE 0      // No OTA support
-#define MG_OTA_STM32H5 1   // STM32 H5 series
+#define MG_OTA_FLASH 1     // OTA via an internal flash
 #define MG_OTA_CUSTOM 100  // Custom implementation
-
-#define MG_OTA_MAGIC 0xb07afeed
 
 #ifndef MG_OTA
 #define MG_OTA MG_OTA_NONE
@@ -1666,22 +1680,58 @@ void mg_rpc_list(struct mg_rpc_req *r);
 
 // Firmware update API
 bool mg_ota_begin(size_t new_firmware_size);     // Start writing
-bool mg_ota_write(const void *buf, size_t len);  // Write firmware chunk
+bool mg_ota_write(const void *buf, size_t len);  // Write chunk, aligned to 1k
 bool mg_ota_end(void);                           // Stop writing
-void mg_sys_reset(void);                         // Reboot device
 
-struct mg_ota_data {
-  uint32_t magic;   // Must be MG_OTA_MAGIC
-  uint32_t crc32;   // Checksum of the current firmware
-  uint32_t size;    // Firware size
-  uint32_t time;    // Flashing timestamp. Unix epoch, seconds since 1970
-  uint32_t booted;  // -1: not yet booted before, otherwise booted
-  uint32_t golden;  // -1: not yet comitted, otherwise clean, committed
+enum {
+  MG_OTA_UNAVAILABLE = 0,  // No OTA information is present
+  MG_OTA_FIRST_BOOT = 1,   // Device booting the first time after the OTA
+  MG_OTA_UNCOMMITTED = 2,  // Ditto, but marking us for the rollback
+  MG_OTA_COMMITTED = 3,    // The firmware is good
 };
+enum { MG_FIRMWARE_CURRENT = 0, MG_FIRMWARE_PREVIOUS = 1 };
 
-bool mg_ota_status(struct mg_ota_data[2]);  // Get status for curr and prev fw
-bool mg_ota_commit(void);                   // Commit current firmware
-bool mg_ota_rollback(void);                 // Rollback to prev firmware
+int mg_ota_status(int firmware);          // Return firmware status MG_OTA_*
+uint32_t mg_ota_crc32(int firmware);      // Return firmware checksum
+uint32_t mg_ota_timestamp(int firmware);  // Firmware timestamp, UNIX UTC epoch
+size_t mg_ota_size(int firmware);         // Firmware size
+
+bool mg_ota_commit(void);    // Commit current firmware
+bool mg_ota_rollback(void);  // Rollback to the previous firmware
+// Copyright (c) 2023 Cesanta Software Limited
+// All rights reserved
+
+
+
+
+
+#define MG_DEVICE_NONE 0      // Dummy system
+#define MG_DEVICE_STM32H5 1   // STM32 H5
+#define MG_DEVICE_STM32H7 2   // STM32 H7
+#define MG_DEVICE_CUSTOM 100  // Custom implementation
+
+#ifndef MG_DEVICE
+#define MG_DEVICE MG_DEVICE_NONE
+#endif
+
+// Flash information
+void *mg_flash_start(void);         // Return flash start address
+size_t mg_flash_size(void);         // Return flash size
+size_t mg_flash_sector_size(void);  // Return flash sector size
+size_t mg_flash_write_align(void);  // Return flash write align, minimum 4
+int mg_flash_bank(void);            // 0: not dual bank, 1: bank1, 2: bank2
+
+// Write, erase, swap bank
+bool mg_flash_write(void *addr, const void *buf, size_t len);
+bool mg_flash_erase(void *addr);  // Must be at sector boundary
+bool mg_flash_swap_bank(void);
+
+// Convenience functions to store data on a flash sector with wear levelling
+// If `sector` is NULL, then the last sector of flash is used
+bool mg_flash_load(void *sector, uint32_t key, void *buf, size_t len);
+bool mg_flash_save(void *sector, uint32_t key, const void *buf, size_t len);
+
+void mg_device_reset(void);  // Reboot device immediately
 
 
 
@@ -1711,6 +1761,8 @@ struct mg_tcpip_if {
   void *driver_data;               // Driver-specific data
   struct mg_mgr *mgr;              // Mongoose event manager
   struct mg_queue recv_queue;      // Receive queue
+  uint16_t mtu;                    // Interface MTU
+#define MG_TCPIP_MTU_DEFAULT 1500
 
   // Internal state, user can use it but should not change it
   uint8_t gwmac[6];             // Router's MAC
@@ -1737,7 +1789,7 @@ extern struct mg_tcpip_driver mg_tcpip_driver_stm32;
 extern struct mg_tcpip_driver mg_tcpip_driver_w5500;
 extern struct mg_tcpip_driver mg_tcpip_driver_tm4c;
 extern struct mg_tcpip_driver mg_tcpip_driver_stm32h;
-extern struct mg_tcpip_driver mg_tcpip_driver_imxrt;
+extern struct mg_tcpip_driver mg_tcpip_driver_imxrt1020;
 extern struct mg_tcpip_driver mg_tcpip_driver_same54;
 
 // Drivers that require SPI, can use this SPI abstraction
@@ -1753,15 +1805,16 @@ struct mg_tcpip_spi {
 struct mg_tcpip_driver_imxrt1020_data {
   // MDC clock divider. MDC clock is derived from IPS Bus clock (ipg_clk),
   // must not exceed 2.5MHz. Configuration for clock range 2.36~2.50 MHz
-  //    ipg_clk       MSCR       mdc_cr VALUE
-  //    -------------------------------------
-  //                                -1  <-- tell driver to guess the value
-  //    25 MHz        0x04           0
-  //    33 MHz        0x06           1
-  //    40 MHz        0x07           2
-  //    50 MHz        0x09           3
-  //    66 MHz        0x0D           4  <-- value for iMXRT1020-EVK at max freq.
-  int mdc_cr;  // Valid values: -1, 0, 1, 2, 3, 4
+  // 37.5.1.8.2, Table 37-46 : f = ipg_clk / (2(mdc_cr + 1))
+  //    ipg_clk       mdc_cr VALUE
+  //    --------------------------
+  //                  -1  <-- TODO() tell driver to guess the value
+  //    25 MHz         4
+  //    33 MHz         6
+  //    40 MHz         7
+  //    50 MHz         9
+  //    66 MHz        13  
+  int mdc_cr;  // Valid values: -1 to 63
 };
 
 
@@ -1818,165 +1871,6 @@ struct mg_tcpip_driver_tm4c_data {
   //    0x4-0xF Reserved
   int mdc_cr;  // Valid values: -1, 0, 1, 2, 3
 };
-
-
-#define CA_ISRG_ROOT_X2                                                \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIICGzCCAaGgAwIBAgIQQdKd0XLq7qeAwSxs6S+HUjAKBggqhkjOPQQDAzBPMQsw\n" \
-  "CQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJuZXQgU2VjdXJpdHkgUmVzZWFyY2gg\n" \
-  "R3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBYMjAeFw0yMDA5MDQwMDAwMDBaFw00\n" \
-  "MDA5MTcxNjAwMDBaME8xCzAJBgNVBAYTAlVTMSkwJwYDVQQKEyBJbnRlcm5ldCBT\n" \
-  "ZWN1cml0eSBSZXNlYXJjaCBHcm91cDEVMBMGA1UEAxMMSVNSRyBSb290IFgyMHYw\n" \
-  "EAYHKoZIzj0CAQYFK4EEACIDYgAEzZvVn4CDCuwJSvMWSj5cz3es3mcFDR0HttwW\n" \
-  "+1qLFNvicWDEukWVEYmO6gbf9yoWHKS5xcUy4APgHoIYOIvXRdgKam7mAHf7AlF9\n" \
-  "ItgKbppbd9/w+kHsOdx1ymgHDB/qo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0T\n" \
-  "AQH/BAUwAwEB/zAdBgNVHQ4EFgQUfEKWrt5LSDv6kviejM9ti6lyN5UwCgYIKoZI\n" \
-  "zj0EAwMDaAAwZQIwe3lORlCEwkSHRhtFcP9Ymd70/aTSVaYgLXTWNLxBo1BfASdW\n" \
-  "tL4ndQavEi51mI38AjEAi/V3bNTIZargCyzuFJ0nN6T5U6VR5CmD1/iQMVtCnwr1\n" \
-  "/q4AaOeMSQ+2b1tbFfLn\n"                                             \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_ISRG_ROOT_X1                                                \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "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\n" \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_GOOGLE_TRUST                                                \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIBxTCCAWugAwIBAgINAfD3nVndblD3QnNxUDAKBggqhkjOPQQDAjBEMQswCQYD\n" \
-  "VQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzERMA8G\n" \
-  "A1UEAxMIR1RTIExUU1IwHhcNMTgxMTAxMDAwMDQyWhcNNDIxMTAxMDAwMDQyWjBE\n" \
-  "MQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExM\n" \
-  "QzERMA8GA1UEAxMIR1RTIExUU1IwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATN\n" \
-  "8YyO2u+yCQoZdwAkUNv5c3dokfULfrA6QJgFV2XMuENtQZIG5HUOS6jFn8f0ySlV\n" \
-  "eORCxqFyjDJyRn86d+Iko0IwQDAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUw\n" \
-  "AwEB/zAdBgNVHQ4EFgQUPv7/zFLrvzQ+PfNA0OQlsV+4u1IwCgYIKoZIzj0EAwID\n" \
-  "SAAwRQIhAPKuf/VtBHqGw3TUwUIq7TfaExp3bH7bjCBmVXJupT9FAiBr0SmCtsuk\n" \
-  "miGgpajjf/gFigGM34F9021bCWs1MbL0SA==\n"                             \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_GLOBALSIGN_EC                                               \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIB4TCCAYegAwIBAgIRKjikHJYKBN5CsiilC+g0mAIwCgYIKoZIzj0EAwIwUDEk\n" \
-  "MCIGA1UECxMbR2xvYmFsU2lnbiBFQ0MgUm9vdCBDQSAtIFI0MRMwEQYDVQQKEwpH\n" \
-  "bG9iYWxTaWduMRMwEQYDVQQDEwpHbG9iYWxTaWduMB4XDTEyMTExMzAwMDAwMFoX\n" \
-  "DTM4MDExOTAzMTQwN1owUDEkMCIGA1UECxMbR2xvYmFsU2lnbiBFQ0MgUm9vdCBD\n" \
-  "QSAtIFI0MRMwEQYDVQQKEwpHbG9iYWxTaWduMRMwEQYDVQQDEwpHbG9iYWxTaWdu\n" \
-  "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuMZ5049sJQ6fLjkZHAOkrprlOQcJ\n" \
-  "FspjsbmG+IpXwVfOQvpzofdlQv8ewQCybnMO/8ch5RikqtlxP6jUuc6MHaNCMEAw\n" \
-  "DgYDVR0PAQH/BAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFFSwe61F\n" \
-  "uOJAf/sKbvu+M8k8o4TVMAoGCCqGSM49BAMCA0gAMEUCIQDckqGgE6bPA7DmxCGX\n" \
-  "kPoUVy0D7O48027KqGx2vKLeuwIgJ6iFJzWbVsaj8kfSt24bAgAXqmemFZHe+pTs\n" \
-  "ewv4n4Q=\n"                                                         \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_GLOBALSIGN_RSA                                              \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIDdTCCAl2gAwIBAgILBAAAAAABFUtaw5QwDQYJKoZIhvcNAQEFBQAwVzELMAkG\n" \
-  "A1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jv\n" \
-  "b3QgQ0ExGzAZBgNVBAMTEkdsb2JhbFNpZ24gUm9vdCBDQTAeFw05ODA5MDExMjAw\n" \
-  "MDBaFw0yODAxMjgxMjAwMDBaMFcxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\n" \
-  "YWxTaWduIG52LXNhMRAwDgYDVQQLEwdSb290IENBMRswGQYDVQQDExJHbG9iYWxT\n" \
-  "aWduIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDaDuaZ\n" \
-  "jc6j40+Kfvvxi4Mla+pIH/EqsLmVEQS98GPR4mdmzxzdzxtIK+6NiY6arymAZavp\n" \
-  "xy0Sy6scTHAHoT0KMM0VjU/43dSMUBUc71DuxC73/OlS8pF94G3VNTCOXkNz8kHp\n" \
-  "1Wrjsok6Vjk4bwY8iGlbKk3Fp1S4bInMm/k8yuX9ifUSPJJ4ltbcdG6TRGHRjcdG\n" \
-  "snUOhugZitVtbNV4FpWi6cgKOOvyJBNPc1STE4U6G7weNLWLBYy5d4ux2x8gkasJ\n" \
-  "U26Qzns3dLlwR5EiUWMWea6xrkEmCMgZK9FGqkjWZCrXgzT/LCrBbBlDSgeF59N8\n" \
-  "9iFo7+ryUp9/k5DPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8E\n" \
-  "BTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo//z9SzANBgkqhkiG9w0B\n" \
-  "AQUFAAOCAQEA1nPnfE920I2/7LqivjTFKDK1fPxsnCwrvQmeU79rXqoRSLblCKOz\n" \
-  "yj1hTdNGCbM+w6DjY1Ub8rrvrTnhQ7k4o+YviiY776BQVvnGCv04zcQLcFGUl5gE\n" \
-  "38NflNUVyRRBnMRddWQVDf9VMOyGj/8N7yy5Y0b2qvzfvGn9LhJIZJrglfCm7ymP\n" \
-  "AbEVtQwdpf5pLGkkeB6zpxxxYu7KyJesF12KwvhHhm4qxFYxldBniYUr+WymXUad\n" \
-  "DKqC5JlR3XC321Y9YeRq4VzW9v493kHMB65jUr9TU/Qr6cf9tveCX4XSQRjbgbME\n" \
-  "HMUfpIBvFSDJ3gyICh3WZlXi/EjJKSZp4A==\n"                             \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_DIGICERT                                                    \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\n" \
-  "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n" \
-  "d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\n" \
-  "QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT\n" \
-  "MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\n" \
-  "b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG\n" \
-  "9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB\n" \
-  "CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97\n" \
-  "nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt\n" \
-  "43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P\n" \
-  "T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4\n" \
-  "gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO\n" \
-  "BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR\n" \
-  "TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw\n" \
-  "DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr\n" \
-  "hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg\n" \
-  "06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF\n" \
-  "PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls\n" \
-  "YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\n" \
-  "CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n"                 \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_AMAZON_4                                                    \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIB8jCCAXigAwIBAgITBmyf18G7EEwpQ+Vxe3ssyBrBDjAKBggqhkjOPQQDAzA5\n" \
-  "MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6b24g\n" \
-  "Um9vdCBDQSA0MB4XDTE1MDUyNjAwMDAwMFoXDTQwMDUyNjAwMDAwMFowOTELMAkG\n" \
-  "A1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJvb3Qg\n" \
-  "Q0EgNDB2MBAGByqGSM49AgEGBSuBBAAiA2IABNKrijdPo1MN/sGKe0uoe0ZLY7Bi\n" \
-  "9i0b2whxIdIA6GO9mif78DluXeo9pcmBqqNbIJhFXRbb/egQbeOc4OO9X4Ri83Bk\n" \
-  "M6DLJC9wuoihKqB1+IGuYgbEgds5bimwHvouXKNCMEAwDwYDVR0TAQH/BAUwAwEB\n" \
-  "/zAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0OBBYEFNPsxzplbszh2naaVvuc84ZtV+WB\n" \
-  "MAoGCCqGSM49BAMDA2gAMGUCMDqLIfG9fhGt0O9Yli/W651+kI0rz2ZVwyzjKKlw\n" \
-  "CkcO8DdZEv8tmZQoTipPNU0zWgIxAOp1AE47xDqUEpHJWEadIRNyp4iciuRMStuW\n" \
-  "1KyLa2tJElMzrdfkviT8tQp21KW8EA==\n"                                 \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_AMAZON_3                                                    \
-  "-----BEGIN CERTIFICATE-----\n"                                      \
-  "MIIBtjCCAVugAwIBAgITBmyf1XSXNmY/Owua2eiedgPySjAKBggqhkjOPQQDAjA5\n" \
-  "MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6b24g\n" \
-  "Um9vdCBDQSAzMB4XDTE1MDUyNjAwMDAwMFoXDTQwMDUyNjAwMDAwMFowOTELMAkG\n" \
-  "A1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJvb3Qg\n" \
-  "Q0EgMzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABCmXp8ZBf8ANm+gBG1bG8lKl\n" \
-  "ui2yEujSLtf6ycXYqm0fc4E7O5hrOXwzpcVOho6AF2hiRVd9RFgdszflZwjrZt6j\n" \
-  "QjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgGGMB0GA1UdDgQWBBSr\n" \
-  "ttvXBp43rDCGB5Fwx5zEGbF4wDAKBggqhkjOPQQDAgNJADBGAiEA4IWSoxe3jfkr\n" \
-  "BqWTrBqYaGFy+uGh0PsceGCmQ5nFuMQCIQCcAu/xlJyzlvnrxir4tiz+OpAUFteM\n" \
-  "YyRIHN8wfdVoOw==\n"                                                 \
-  "-----END CERTIFICATE-----\n"
-
-#define CA_ALL                                                     \
-  CA_ISRG_ROOT_X1 CA_ISRG_ROOT_X2 CA_GOOGLE_TRUST CA_GLOBALSIGN_EC \
-      CA_GLOBALSIGN_RSA CA_DIGICERT CA_AMAZON_4 CA_AMAZON_3
 
 #ifdef __cplusplus
 }

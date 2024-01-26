@@ -6,6 +6,7 @@ import TsensorCard from './TsensorCard';
 import TmcuCard from './TmcuCard';
 import FormBoard from './FormBoard';
 import FormComms from './FormComms';
+import FormFirmware from './FormFirmwareUpdate';
 
 const classes = {
   general: {
@@ -51,7 +52,7 @@ const Home = ({ onLogout }) => {
 
   const handleClick = useCallback((data) => {
     socket.send(JSON.stringify(data));
-    console.log(JSON.stringify(data))
+    console.log(JSON.stringify(data));
   }, [])
 
   useEffect(() => {
@@ -102,11 +103,13 @@ const Home = ({ onLogout }) => {
                 indicatorColor='secondary'>
                 <Tab label='Board' />
                 <Tab label='Network' />
+                <Tab label='Firmware Update' />
               </Tabs>
             </Box>
             <Box sx={{ padding: 2 }}>
               {tabIndex === 0 && <FormBoard data={wsData} onChange={handleClick}/>}
               {tabIndex === 1 && <FormComms data={wsData} onClick={handleClick}/>}
+              {tabIndex === 2 && <FormFirmware data={wsData} onClick={handleClick}/>}
             </Box>
           </Box>
         </Grid>
