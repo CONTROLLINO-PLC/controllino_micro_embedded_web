@@ -15,7 +15,7 @@
 #include <CAN.h>
 #endif
 
-#define LED_BLINK // Comment this line to disable LED blink
+// #define LED_BLINK // Comment this line to disable LED blink
 #ifdef LED_BLINK
 #define LED_BLINK_INTERVAL 1000 // ms
 uint32_t ledBlinkTimer = 0;
