@@ -23,8 +23,6 @@ const classes = {
         backgroundColor: '#3C3D3C'
     },
     componentContainer: {
-        // display:'flex',
-        // justifyContent: 'center',
         borderRadius: 3,
         marginLeft: 2,
         marginBottom: 2,
@@ -53,21 +51,21 @@ const classes = {
 };
 
 function FormComms(props) {
-    // const handleClick = useCallback(() => {
-    //     const ip = Array.from({ length: 4 }, (_, i) => document.getElementById(`ip${i}`).value).join('.');
-    //     const subnet = Array.from({ length: 4 }, (_, i) => document.getElementById(`s${i}`).value).join('.');
-    //     const gateway = Array.from({ length: 4 }, (_, i) => document.getElementById(`g${i}`).value).join('.');
-    //     data[1] = { ...data[1], IP_address: ip, subnet, gateway, modifyed: true };
-    //     props.onClick(data);
-    //     data[1].modifyed = false;
-    //     window.location.href = `http://${data[1].IP_address}:81/`;
-    //   }, []);
+    const handleClick = useCallback(() => {
+        const ip = Array.from({ length: 4 }, (_, i) => document.getElementById(`ip${i}`).value).join('.');
+        const subnet = Array.from({ length: 4 }, (_, i) => document.getElementById(`s${i}`).value).join('.');
+        const gateway = Array.from({ length: 4 }, (_, i) => document.getElementById(`g${i}`).value).join('.');
+        data[1] = { ...data[1], IP_address: ip, subnet, gateway, modifyed: true };
+        props.onClick(data);
+        data[1].modifyed = false;
+        window.location.href = `http://${data[1].IP_address}:81/`;
+      }, []);
 
     const editComms = () => {
-        // editFlag = true;
-        // setTimeout(() => {
-        //     editFlag = false;
-        // }, '15000');
+        editFlag = true;
+        setTimeout(() => {
+            editFlag = false;
+        }, '15000');
     };
     useEffect(() => {
         if (!props.data) return;
@@ -210,12 +208,43 @@ function FormComms(props) {
                         </Grid>
                     ))}
 
-                        <Grid item xs={12}>
-                            {/* <Button onClick={handleClick} style={classes.button}
-                                variant='contained'>
+                    <Grid container spacing={1} xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Grid item xs={6}>
+                            <Button onClick={handleClick}
+                                variant='contained'
+                                style={{
+                                    borderRadius: '15px', 
+                                    background: '#D8D500', 
+                                    color: '#000000',
+                                    display: 'flex',
+                                    width: '99%',
+                                    marginLeft: '3%',
+                                    marginTop: '8%',
+                                    marginBottom: 10
+                                    }}
+                                >
                                 save and reload page
-                            </Button> */}
+                            </Button>
                         </Grid>
+
+                        <Grid item xs={6}>
+                            <Button onClick={handleClick}
+                                variant='contained'
+                                style={{
+                                    borderRadius: '15px', 
+                                    background: '#e15757', 
+                                    color: 'white',
+                                    display: 'flex',
+                                    width: '99%',
+                                    marginLeft: '2%',
+                                    marginTop: '8%',
+                                    marginBottom: 10
+                                    }} 
+                                >
+                                save to memory
+                            </Button>
+                        </Grid>
+                    </Grid>
 
             </Grid>
 
