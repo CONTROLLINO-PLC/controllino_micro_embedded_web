@@ -12735,12 +12735,12 @@ static const struct packed_file {
   size_t size;
   time_t mtime;
 } packed_files[] = {
-  {"/web/index.html.gz", v1, sizeof(v1), 1706264918},
-  {"/web/favicon.ico", v2, sizeof(v2), 1706264918},
-  {"/web/assets/Board-f90c49df.svg.gz", v3, sizeof(v3), 1706264918},
-  {"/web/assets/index-73ce8e96.css.gz", v4, sizeof(v4), 1706264918},
-  {"/web/assets/index-ec2a83e6.js.gz", v5, sizeof(v5), 1706264918},
-  {"/web/assets/controllino-6de495e7.png", v6, sizeof(v6), 1706264918},
+  {"/web/index.html.gz", v1, sizeof(v1), 1706609595},
+  {"/web/favicon.ico", v2, sizeof(v2), 1706609595},
+  {"/web/assets/Board-f90c49df.svg.gz", v3, sizeof(v3), 1706609595},
+  {"/web/assets/index-73ce8e96.css.gz", v4, sizeof(v4), 1706609595},
+  {"/web/assets/index-ec2a83e6.js.gz", v5, sizeof(v5), 1706609595},
+  {"/web/assets/controllino-6de495e7.png", v6, sizeof(v6), 1706609596},
   {NULL, NULL, 0, 0}
 };
 
