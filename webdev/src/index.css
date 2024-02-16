@@ -116,10 +116,6 @@ body {
   margin-top: 5px;
 }
 
-input[type="file"] {
-  /* display: none; */
- }
-
  .custom-file-upload {
   background-color: yellow;
   border-radius: 5px;
