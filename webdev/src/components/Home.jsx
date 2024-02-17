@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Grid, Tabs, Tab, Box } from '@mui/material';
 import Navbar from './Navbar';
 import VsuplyCard from './VsuplyCard';

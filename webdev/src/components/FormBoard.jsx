@@ -1,4 +1,3 @@
-import React, { useContext } from 'react';
 import { Grid } from '@mui/material';
 import Output from './Outputs';
 import LedOutput from './LedOutput';
