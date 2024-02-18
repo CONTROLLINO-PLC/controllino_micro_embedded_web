@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import {useEffect} from 'react';
 import { Box } from '@mui/material';
 
 const RegletaLEDs = (props) => {

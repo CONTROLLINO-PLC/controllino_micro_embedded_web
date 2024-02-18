@@ -2,7 +2,6 @@ import React from 'react';
 import { Snackbar, Typography, Switch } from '@mui/material';
 import MuiAlert from "@mui/material/Alert";
 import { styled } from '@mui/material/styles';
-import { context } from '../App';
 
 const classes = {
     root: {
