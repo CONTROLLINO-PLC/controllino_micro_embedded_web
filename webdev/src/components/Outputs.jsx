@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Slider, Grid, Typography, Checkbox, Switch, TextField, Button } from '@mui/material';
 import MuiAlert from "@mui/material/Alert";
 import { styled } from '@mui/material/styles';
@@ -167,7 +168,6 @@ function OutputComponent(props) {
       <div>
         {[...Array(8)].map((_, index) => (
           <Grid container key={`DO${index}`} spacing={1} alignItems='center'>
-            {/* <Typography variant='caption' style={classes.labelLeft}>DO{index}</Typography> */}
             <Grid item xs={4}>
               <TextField
                 onKeyDown={(e) => {

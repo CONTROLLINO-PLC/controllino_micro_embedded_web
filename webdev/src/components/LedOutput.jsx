@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import{ useContext } from 'react';
 import { Box } from '@mui/material';
 import { context } from '../App';
 
