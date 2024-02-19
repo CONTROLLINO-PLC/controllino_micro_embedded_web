@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, Typography, CardContent } from '@mui/material';
 import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
 
@@ -39,6 +38,7 @@ function VsuplyCard(props) {
                     {props.titulo}
                 </Typography>
             </CardContent>
+
         </Card>
     );
 }

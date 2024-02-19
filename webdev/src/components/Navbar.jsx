@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, AppBar, Toolbar, IconButton, Typography, Grid, Button} from '@mui/material';
 import Logo from '../assets/img/controllino.png';
 

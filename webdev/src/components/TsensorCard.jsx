@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, Typography, CardContent } from '@mui/material';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 
@@ -40,6 +39,7 @@ function TinternalCard(props) {
                     {props.titulo}
                 </Typography>
             </CardContent>
+            
         </Card>
     );
 }
