@@ -7,12 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
 package-lock.json
-build
+node_modules
 dist
 dist-ssr
-.vite
 *.local
 
 # Editor directories and files
