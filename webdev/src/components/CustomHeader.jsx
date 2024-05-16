@@ -1,6 +1,6 @@
-import { useContext } from "react"
-import { Button } from "./Button"
-import { LayoutContext } from "../layout/layout.context"
+import { useContext } from "react";
+import { Button } from "./Button";
+import { LayoutContext } from "../layout/layout.context";
 
 export function CustomHeader(props) {
   const { setLogin } = useContext(LayoutContext)

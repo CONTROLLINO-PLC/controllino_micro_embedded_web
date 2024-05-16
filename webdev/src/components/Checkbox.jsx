@@ -1,6 +1,6 @@
 import { SVG } from './SVG';
 
-export function Checkbox({checked, setChecked}) {
+export function Checkbox({ checked, setChecked }) {
 
     const handleCheckboxChange = (e) => {
         setChecked(e.target.checked);
