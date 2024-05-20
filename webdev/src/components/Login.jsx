@@ -1,6 +1,6 @@
-import { useContext } from "react"
+import { useContext } from "react";
 import { LayoutContext } from "../layout/layout.context";
-import { Button } from "./Button"
+import { Button } from "./Button";
 
 export function Login() {
     const { setLogin } = useContext(LayoutContext)
@@ -22,13 +22,13 @@ export function Login() {
                 <form className="mt-8" onSubmit={handleOnSubmit}>
                     <div className="mb-4">
                         <div className="relative">
-                            <input type="text" name="username" className="bg-white/0 peer border-2 py-2 text-lg w-full border-primary text-center text-gray-300 placeholder-transparent focus:outline-none focus:ring-1 focus:ring-primary/40 rounded" placeholder="user*" required/>
+                            <input type="text" name="username" className="bg-white/0 peer border-2 py-2 text-lg w-full border-primary text-center text-gray-300 placeholder-transparent focus:outline-none focus:ring-1 focus:ring-primary/40 rounded" placeholder="user*" required />
                             <label className="absolute left-2 -top-5 text-primary text-sm peer-placeholder-shown:text-xs peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-5 transition-all">user*</label>
                         </div>
                     </div>
                     <div className="mt-6">
                         <div className="relative">
-                            <input type="password" name="password" className="bg-white/0 peer border-2 py-2 text-lg w-full border-primary text-center text-gray-300 placeholder-transparent focus:outline-none focus:ring-1 focus:ring-primary/40 rounded" placeholder="password*" required/>
+                            <input type="password" name="password" className="bg-white/0 peer border-2 py-2 text-lg w-full border-primary text-center text-gray-300 placeholder-transparent focus:outline-none focus:ring-1 focus:ring-primary/40 rounded" placeholder="password*" required />
                             <label className="absolute left-2 -top-5 text-primary text-sm peer-placeholder-shown:text-xs peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-5 transition-all">password*</label>
                         </div>
                     </div>

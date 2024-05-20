@@ -1,6 +1,6 @@
 export function Header(props) {
   return (
-    <footer 
+    <footer
       className=""
       {...props}
     />
