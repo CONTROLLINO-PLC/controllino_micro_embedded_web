@@ -40,8 +40,8 @@ export function BoardForm() {
             <div className="absolute inset-0 mt-[93.7%] mb-[51%] mr-[80.6%] ml-[9.9%] flex flex-col justify-between">
                 {
                     sliders.map((i, index) => (
-                        <div className="w-24 h-[11%]">
-                            <Item key={index} className="h-[278%]"
+                        <div key={index} className="w-24 h-[11%]">
+                            <Item className="h-[278%]"
                                 fill={`RGB(${128 - i * 0.51}, ${128 + i * 1.27}, ${128 - i * 1.12})`}
                                 transform={'rotate(0, 12, 12)'}
                             />
@@ -59,8 +59,8 @@ export function BoardForm() {
             <div className="absolute inset-0 mt-[70.9%] mb-[64.4%] ml-[73.3%] flex flex-col justify-between">
                 {
                     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i, index) => (
-                        <div className="w-24 h-[10.8%]">
-                            <Item key={index} className="h-[248%]"
+                        <div  key={index} className="w-24 h-[10.8%]">
+                            <Item className="h-[248%]"
                                 fill={`grey`}
                                 transform={'rotate(180, 12, 12)'}
                             />

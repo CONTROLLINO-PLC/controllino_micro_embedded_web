@@ -48,7 +48,7 @@ const serverREST = http.createServer((req, res) => {
     setCorsHeaders(res);
 
     if (req.method === 'GET' && parsedUrl.pathname === '/api/network/settings') {
-        data = {"ip":"192.168.0.2", "mask":"255.255.255.255", "gw":"192.168.0.1", "mac":"FF:FF:FF:FF:FF:FF"};
+        data = {"ip":"192.168.0.4", "mask":"255.255.255.255", "gw":"192.168.0.1", "mac":"FF:FF:FF:FF:FF:FF"};
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(data));
     } else if(req.method === 'GET' && parsedUrl.pathname === '/api/temperature/settings') {
@@ -84,6 +84,20 @@ const serverREST = http.createServer((req, res) => {
         res.end('ok');
     }
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/firmware/upload'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({status: 'ok'}));
+    }
+    // new
+    else if(req.method === 'GET' && parsedUrl.pathname === '/api/outputs') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            sliders: [50,2,3,4,5,56,17,8],
+            checkboxs: [false, false, true, true, false, false, true, true],
+            currentLimits: [500,2200,3000,2000,1000,560,1700,2800],
+            switchs: [false, false, true, true, false, false, true, true],
+        }));
+    }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
     }
