@@ -17,7 +17,7 @@ export function Layout() {
   if (!login) return <Login />
 
   return (
-    <div className="bg-[#1f1f1f] flex flex-col min-h-screen select-none">
+    <div className="bg-[#1f1f1f] flex flex-col min-h-svh select-none">
       <CustomHeader>
         <img src="/controllino.png" className="h-[40px]" />
         <InfoHeader text="MICRO Embedded Web" />

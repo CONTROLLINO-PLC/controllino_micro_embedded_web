@@ -26,7 +26,7 @@ export function Select({ selected, options, setSelected }) {
         />
         {
           selectVisible && (
-            <div className={"absolute bg-[#3d3c3d] py-2 rounded border border-gray-500 inset-x-0 mt-1"}>
+            <div className={"absolute bg-[#3d3c3d] py-2 z-10 rounded border border-gray-500 inset-x-0 mt-1"}>
               {
                 options.map((i, index) => (
                   <div
