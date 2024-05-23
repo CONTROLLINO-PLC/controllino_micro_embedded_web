@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState } from "react"
-import { LayoutContext } from "../../layout/layout.context"
+import { useContext, useEffect, useState } from "react";
+import { LayoutContext } from "../../layout/layout.context";
 
 function Item({ className, fill, transform }) {
     return (

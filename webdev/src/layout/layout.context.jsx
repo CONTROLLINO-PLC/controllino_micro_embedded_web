@@ -15,10 +15,10 @@ export const LayoutContext = createContext({
     modbusAlertRate: '', setModbusAlertRate: () => { },
     tempFormAlert: '', setTempFormAlert: () => { },
   },
-  sliders: [0,0,0,0,0,0,0,0], setSlider: () => { },
-  checkboxs: [false,false,false,false,false,false,false,false], setCheckbox: () => {},
-  switchs: [false,false,false,false,false,false,false,false], setSwitch: () => {},
-  inputs: [[[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]]], setInput: () => {},
+  sliders: [0, 0, 0, 0, 0, 0, 0, 0], setSlider: () => { },
+  checkboxs: [false, false, false, false, false, false, false, false], setCheckbox: () => { },
+  switchs: [false, false, false, false, false, false, false, false], setSwitch: () => { },
+  inputs: [[[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]], setInput: () => { },
 })
 
 export function LayoutProvider(props) {
@@ -26,12 +26,12 @@ export function LayoutProvider(props) {
   const [vsupply, setVsupply] = useState(0)
   const [tmcu, setTmcu] = useState(0)
   const [sliders, setSliders] = useState([0, 0, 0, 0, 0, 0, 0, 0])
-  const [inputs, setInputs] = useState([[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]])
-  const [switchs, setSwithcs] = useState([false,false,false,false,false,false,false,false])
-  const [checkboxs, setCheckboxs] = useState([false,false,false,false,false,false,false,false])
+  const [inputs, setInputs] = useState([[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]])
+  const [switchs, setSwithcs] = useState([false, false, false, false, false, false, false, false])
+  const [checkboxs, setCheckboxs] = useState([false, false, false, false, false, false, false, false])
 
   const [notification, setNotification] = useState(false)
-  
+
   const [tempAlert, setTempAlert] = useState('')
   const [modbusAlertCoil1, setModbusAlertCoil1] = useState('')
   const [modbusAlertCoil2, setModbusAlertCoil2] = useState('')
@@ -42,7 +42,7 @@ export function LayoutProvider(props) {
     setSliders(i => i.map((v, i) => i === index ? value : v))
   }
   const setInput = (index, innerIndex, value) => {
-    setInputs(i => i.map((v, i) => i === index ? (innerIndex === 0 ? [value, v[1]] :  [v[0], value]) : v))
+    setInputs(i => i.map((v, i) => i === index ? (innerIndex === 0 ? [value, v[1]] : [v[0], value]) : v))
   }
   const setCheckbox = (index, value) => {
     setCheckboxs(i => i.map((v, i) => i === index ? value : v))

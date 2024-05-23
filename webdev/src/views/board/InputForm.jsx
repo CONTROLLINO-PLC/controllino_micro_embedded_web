@@ -1,6 +1,6 @@
-import { useContext } from "react"
-import { Button, Input } from "../../components"
-import { LayoutContext } from "../../layout/layout.context"
+import { useContext } from "react";
+import { Button, Input } from "../../components";
+import { LayoutContext } from "../../layout/layout.context";
 
 function Row({ firstInput, secondInput, onChangeFirstInput, onChangeSecondInput, addClassName }) {
     return (

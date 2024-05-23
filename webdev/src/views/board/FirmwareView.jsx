@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef, useContext } from "react"
+import { useEffect, useState, useRef, useContext } from "react";
 import { Button, SVG } from "../../components";
-import { LayoutContext } from "../../layout/layout.context"
+import { LayoutContext } from "../../layout/layout.context";
 
 function Current(props) {
     const input = useRef(null);
