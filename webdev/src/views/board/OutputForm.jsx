@@ -8,12 +8,12 @@ function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, 
             <div className="col-span-3">
                 <Input type='number' min={500} max={3000} className='w-16' value={currentLimit} onChange={onChangeCurrentLimit} />
             </div>
-            <Button className='px-2 col-span-2'>SET</Button>
-            <div className="col-span-4">
+            <div className="col-span-9 flex justify-between gap-4 items-center">
+                <Button className='px-2 col-span-2'>SET</Button>
                 <Slider value={slider} onChange={onChangeSlider} />
+                <Checkbox checked={checkbox} setChecked={onChangeCheckbox} />
+                <Switch onChange={onChangeSwitch} checked={switchValue} />
             </div>
-            <Checkbox checked={checkbox} setChecked={onChangeCheckbox} />
-            <Switch onChange={onChangeSwitch} checked={switchValue} />
         </div>
     )
 }

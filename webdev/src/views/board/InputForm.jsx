@@ -6,12 +6,12 @@ function Row({ firstInput, secondInput, onChangeSecondInput, addClassName, click
     return (
         <div className={"grid grid-cols-5 items-center gap-4 " + addClassName}>
             <div className="col-span-2">
-                <Input value={+firstInput} readOnly />
+                <Input value={+firstInput} readOnly className='cursor-default' />
             </div>
             <div className="col-span-2">
                 <Input type='number' min={0} max={30}  value={+secondInput} onChange={e => onChangeSecondInput(+e.target.value)} />
             </div>
-            <Button onClick={clickSetInput} disabled={secondInput < 0 || secondInput > 30} className='px-4'>SET</Button>
+            <Button onClick={clickSetInput} disabled={secondInput < 0 || secondInput > 30} className='px-auto'>SET</Button>
         </div>
     )
 }
