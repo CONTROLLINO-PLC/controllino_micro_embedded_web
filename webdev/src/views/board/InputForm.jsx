@@ -2,18 +2,22 @@ import { useContext } from "react";
 import { Button, Input } from "../../components";
 import { LayoutContext } from "../../layout/layout.context";
 
-function Row({ firstInput, secondInput, onChangeFirstInput, onChangeSecondInput, addClassName }) {
+function Row({ firstInput, secondInput, onChangeSecondInput, addClassName, clickSetInput }) {
     return (
-        <div className={"flex justify-between items-center gap-4 " + addClassName}>
-            <Input value={firstInput} onChange={e => onChangeFirstInput(+e.target.value)} />
-            <Input value={secondInput} onChange={e => onChangeSecondInput(+e.target.value)} />
-            <Button className='px-4'>SET</Button>
+        <div className={"grid grid-cols-5 items-center gap-4 " + addClassName}>
+            <div className="col-span-2">
+                <Input value={+firstInput} readOnly />
+            </div>
+            <div className="col-span-2">
+                <Input type='number' min={0} max={30}  value={+secondInput} onChange={e => onChangeSecondInput(+e.target.value)} />
+            </div>
+            <Button onClick={clickSetInput} disabled={secondInput < 0 || secondInput > 30} className='px-4'>SET</Button>
         </div>
     )
 }
 
 export function InputForm() {
-    const { inputs, setInput } = useContext(LayoutContext)
+    const { inputs, setInput, clickSetInput } = useContext(LayoutContext)
 
     return (
         <div className="px-4 py-2 flex flex-col gap-1 justify-between h-full">
@@ -33,8 +37,8 @@ export function InputForm() {
                         addClassName={index === 6 ? 'mt-4' : ''}
                         firstInput={i[0]}
                         secondInput={i[1]}
-                        onChangeFirstInput={v => setInput(index, 0, v)}
-                        onChangeSecondInput={v => setInput(index, 1, v)}
+                        clickSetInput={() => clickSetInput(index, i[1])}
+                        onChangeSecondInput={v => setInput(index, 1, +v)}
                     />
                 ))
             }

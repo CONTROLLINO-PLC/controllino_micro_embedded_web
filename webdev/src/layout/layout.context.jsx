@@ -15,8 +15,10 @@ export const LayoutContext = createContext({
     modbusAlertRate: '', setModbusAlertRate: () => { },
     tempFormAlert: '', setTempFormAlert: () => { },
     currentLimitAlert: '', setCurrentLimitAlert: () => { },
+    inputAlert: '', setInputAlert: () => {}
   },
   sliders: [0, 0, 0, 0, 0, 0, 0, 0], setSlider: () => { },
+  clickSetInput: () => { },
   currentLimits: [0, 0, 0, 0, 0, 0, 0, 0], setCurrentLimit: () => { },
   checkboxs: [false, false, false, false, false, false, false, false], setCheckbox: () => { },
   switchs: [false, false, false, false, false, false, false, false], setSwitch: () => { },
@@ -41,6 +43,7 @@ export function LayoutProvider(props) {
   const [modbusAlertRate, setModbusAlertRate] = useState('')
   const [tempFormAlert, setTempFormAlert] = useState('')
   const [currentLimitAlert, setCurrentLimitAlert] = useState('')
+  const [inputAlert, setInputAlert] = useState('')
 
   const setSlider = async (index, value) => {
     fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
@@ -61,7 +64,7 @@ export function LayoutProvider(props) {
   }
 
   const setInput = (index, innerIndex, value) => {
-    setInputs(i => i.map((v, i) => i === index ? (innerIndex === 0 ? [value, v[1]] : [v[0], value]) : v))
+    setInputs(i => i.map((v, i) => i === index ? (innerIndex === 0 ? [value, v[1]] : [v[0], +value ]) : v))
   }
   const setCheckbox = (index, value) => {
     fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
@@ -70,6 +73,14 @@ export function LayoutProvider(props) {
     }).then(i => i.json()).then((() => {
       setCheckboxs(i => i.map((v, i) => i === index ? value : v))
     }))
+  }
+
+  const clickSetInput = (index, value) => {
+    if (value >= 0 && value <= 30)
+      return fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/inputs`, {
+        method: 'POST',
+        body: { id: `digital_thershold-${index}`, value }
+      }).then(i => i.json())
   }
 
   const setSwitch = (index, value) => {
@@ -121,13 +132,22 @@ export function LayoutProvider(props) {
       if (data.checkboxs) setCheckboxs(data.checkboxs)
       if (data.switchs) setSwithcs(data.switchs)
     })
+    fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/inputs`).then(i => i.json()).then((data) => {
+      if (data.inputs) setInputs(data.inputs)
+    })
   }, []);
 
   useEffect(() => {
-    const hasError = currentLimits.find(i => (i < 500 || i >3000))
+    const hasError = currentLimits.find(i => (i < 500 || i > 3000))
     if (hasError) setCurrentLimitAlert('Current range can only be 0.5 to 3A!')
     else setCurrentLimitAlert('')
   }, [currentLimits])
+
+  useEffect(() => {
+    const hasError = inputs.find(i => (i[1] < 0 || i[1] > 30))
+    if (hasError) setInputAlert('Input range can only be 0 to 30ma!')
+    else setInputAlert('')
+  }, [inputs])
 
   return (
     <LayoutContext.Provider value={{
@@ -142,12 +162,14 @@ export function LayoutProvider(props) {
         modbusAlertRate, setModbusAlertRate,
         tempFormAlert, setTempFormAlert,
         currentLimitAlert, setCurrentLimitAlert,
+        inputAlert, setInputAlert,
       },
       sliders, setSlider,
       checkboxs, setCheckbox,
       switchs, setSwitch,
       inputs, setInput,
       currentLimits, setCurrentLimit,
+      clickSetInput,
     }}>
       {props.children}
     </LayoutContext.Provider>

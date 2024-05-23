@@ -97,7 +97,18 @@ const serverREST = http.createServer((req, res) => {
             switchs: [false, false, true, true, false, false, true, true],
         }));
     }
+    else if(req.method === 'GET' && parsedUrl.pathname === '/api/inputs') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            inputs: [[0,0],[25,25],[0,25],[0,25],[30,30],[20,20],[10,10],[18,18]],
+        }));
+    }
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({status: 'ok'}));
+    
+    }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/inputs'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
     }
