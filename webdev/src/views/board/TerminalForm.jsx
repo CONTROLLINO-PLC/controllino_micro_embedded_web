@@ -11,6 +11,9 @@ export function TerminalForm() {
   const [scroll, setScroll] = useState(0)
   const [terminalHeight, setTerminalHeight] = useState(0)
   const [parentHeight, setParentHeight] = useState(0)
+  const [grabbing, setGrabbing] = useState(false)
+  const [initalGrabbed, setInitialGrabbed] = useState(0)
+  const [initalGrabbedScroll, setInitialGrabbedScroll] = useState(0)
 
   const calculateHeight = () => {
     if (parentRef.current) setParentHeight(parentRef.current.clientHeight)
@@ -23,7 +26,7 @@ export function TerminalForm() {
 
   return (
     <div className="px-4 py-2 flex flex-col gap-2 justify-between h-full">
-      <div className="text-lg text-center">CAN ( 500kbit/s ) / RS485 ( 8N1-115.2kbit/s )</div>
+      <div className="text-lg text-center">CAN (500kbit/s) / RS485 (8N1-115.2kbit/s)</div>
 
       <div className="flex justify-between gap-4">
         <div className="grow">
@@ -56,7 +59,7 @@ export function TerminalForm() {
           >
             <div
               ref={terminalRef}
-              className="p-2"
+              className="p-2 flex flex-col gap-1"
               style={{
                 marginBottom: -scroll
               }}>
@@ -70,20 +73,47 @@ export function TerminalForm() {
 
         </div>
 
-        <div className="w-4 h-full bg-[#201818] rounded flex flex-col">
-          <div className="h-8"></div>
+        <div
+              onMouseDown={(e) => {
+                setGrabbing(true)
+                setInitialGrabbedScroll(scroll)
+                setInitialGrabbed(e.pageY)
+              }}
+              onMouseMove={(e) => {
+                if (!grabbing) return;
+                setScroll((i) => initalGrabbed > e.pageY ? i + 15 : i - 15)
+                setInitialGrabbed(e.pageY)
+              }}
+          className="w-4 h-full bg-[#201818] rounded mr-1 flex flex-col justify-between items-center"
+        >
+          <button
+            className="h-8"
+            onClick={() => setScroll(i => i + 15)}
+          >
+            <SVG select={'triangle'} />
+          </button>
           <div className="grow flex flex-col justify-end px-1">
-            <div className="w-full bg-primary rounded-full cursor-grab active:cursor-grabbing"
+            <button
+              onMouseUp={() => setGrabbing(false)}
+              onMouseDown={() => {
+                setGrabbing(true)
+              }}
+              className="w-2 bg-primary rounded-full cursor-grab active:cursor-grabbing"
               style={{
                 height: `${(terminalHeight > parentHeight ? parentHeight/terminalHeight : 1)*100}%`,
               }}
-            ></div>
+            ></button>
             <div style={{
               height: `${(scroll/terminalHeight)*100}%`
             }}></div>
 
           </div>
-          <div className="h-8"></div>
+          <button
+            className="h-8"
+            onClick={() => setScroll(i => (i - 15 < 0 ? 0 : i - 15))}
+          >
+            <SVG select={'triangle'} />
+          </button>
         </div>
       </div>
     </div>
