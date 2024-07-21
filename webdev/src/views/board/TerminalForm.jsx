@@ -1,28 +1,35 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Button, Input, SVG, Select } from "../../components";
+import { LayoutContext } from "../../layout/layout.context";
 
 const VALUES = ['New Line', 'Carriage Return', 'Both NL & CR']
 
 export function TerminalForm() {
-  const terminalRef = useRef(null)
-  const parentRef = useRef(null)
-  const [selectVisible, setSelectVisible] = useState(false)
   const [selected, setSelected] = useState(0)
-  const [scroll, setScroll] = useState(0)
-  const [terminalHeight, setTerminalHeight] = useState(0)
-  const [parentHeight, setParentHeight] = useState(0)
-  const [grabbing, setGrabbing] = useState(false)
-  const [initalGrabbed, setInitialGrabbed] = useState(0)
-  const [initalGrabbedScroll, setInitialGrabbedScroll] = useState(0)
-
-  const calculateHeight = () => {
-    if (parentRef.current) setParentHeight(parentRef.current.clientHeight)
-    if (terminalRef.current) setTerminalHeight(terminalRef.current.clientHeight)
-  }
+  const ref = useRef()
+  const [scrolled, setScrolled] = useState(true)
+  const { serials, setSerials, setSerial } = useContext(LayoutContext)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
-    calculateHeight()
-  }, [])
+    if (serials.length > 50) setSerials(i => i.slice(serials.length - 50))
+    setTimeout(() => {
+      if (scrolled) scroll()
+    }, 0);
+  }, [serials, scrolled])
+
+  const clear = () => {
+    setSerials([])
+    setScrolled(true)
+  }
+
+  const scroll = () => {
+    if (!ref.current) return;
+    ref.current.scroll({
+      top: ref.current.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
 
   return (
     <div className="px-4 py-2 flex flex-col gap-2 justify-between h-full">
@@ -30,10 +37,18 @@ export function TerminalForm() {
 
       <div className="flex justify-between gap-4">
         <div className="grow">
-          <Input className='px-3' alignLeft />
+          <Input
+            className='px-3'
+            alignLeft 
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+          />
         </div>
 
-        <Button className='px-4'>SEND</Button>
+        <Button className='px-4' onClick={() => {
+          setSerial(message)
+          setMessage('')
+        }}>SEND</Button>
       </div>
 
       <div className="flex justify-between gap-4">
@@ -41,79 +56,39 @@ export function TerminalForm() {
           <Select options={VALUES} selected={selected} setSelected={setSelected} />
         </div>
 
-        <Button className='px-3 ' bgClassName='bg-black hover:bg-black/50 text-primary'>CLEAR</Button>
+        <Button className='px-3 ' bgClassName='bg-black hover:bg-black/50 text-primary' onClick={clear}>CLEAR</Button>
       </div>
 
       <div className="grow border border-primary rounded-lg min-h-52 bg-[#251C1C] flex">
         <div className="relative grow h-full">
+          <button
+            className={`absolute bottom-4 right-4 text-white z-30 ${scrolled && 'hidden'}`}
+            onClick={scroll}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </button>
           <div
-            ref={parentRef}
-            className="absolute inset-0 z-0 overflow-hidden flex flex-col justify-end"
-            onWheel={(e) => {
-              e.stopPropagation()
-              if (e.deltaY > 0)
-                setScroll(i => i - 15 < 0 ? 0 : i - 15)
-              else
-                setScroll(i => (i + 15 > terminalHeight - parentHeight) ? i : i + 15)
+            className="absolute inset-0 overflow-y-auto bg-[#251C1C]  rounded-lg"
+            ref={ref}
+            onScroll={(e) => {
+              const size = e.currentTarget.scrollHeight - e.currentTarget.clientHeight
+              const scrollDown = size - e.currentTarget.scrollTop
+              setScrolled(scrollDown < 60)
             }}
           >
             <div
-              ref={terminalRef}
-              className="p-2 flex flex-col gap-1"
-              style={{
-                marginBottom: -scroll
-              }}>
-              {
-                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((i, index) => (
-                  <p key={index}>Lorem, ipsum dolor sit amet consectetur adipisicing elit. In adipisci quos porro fuga quam deserunt beatae alias, quas reprehenderit id corrupti voluptatibus doloremque eligendi iure, ea perspiciatis! Laborum, eos nam.</p>
-                ))
-              }
+              className={[
+                // "overflow-auto",
+                "bg-[#251C1C]  shadow-inner p-1 gap-1 flex flex-col justify-end",
+              ].join(' ')}
+            >
+              {serials.map((serial, key) => <p key={key} style={{ marginBlockStart: 0, marginBlockEnd: 2, color: serial.split("<:::>")[0] === "send" ? "yellow" : "white" }}>
+                {'>_ ' + serial.split("<:::>")[1].replace('\\n', `\n`)}</p>)}
+              <p style={{ marginBlockStart: 0, marginBlockEnd: 2 }}>{'>_'}</p>
             </div>
           </div>
-
-        </div>
-
-        <div
-              onMouseDown={(e) => {
-                setGrabbing(true)
-                setInitialGrabbedScroll(scroll)
-                setInitialGrabbed(e.pageY)
-              }}
-              onMouseMove={(e) => {
-                if (!grabbing) return;
-                setScroll((i) => initalGrabbed > e.pageY ? i + 15 : i - 15)
-                setInitialGrabbed(e.pageY)
-              }}
-          className="w-4 h-full bg-[#201818] rounded mr-1 flex flex-col justify-between items-center"
-        >
-          <button
-            className="h-8"
-            onClick={() => setScroll(i => i + 15)}
-          >
-            <SVG select={'triangle'} />
-          </button>
-          <div className="grow flex flex-col justify-end px-1">
-            <button
-              onMouseUp={() => setGrabbing(false)}
-              onMouseDown={() => {
-                setGrabbing(true)
-              }}
-              className="w-2 bg-primary rounded-full cursor-grab active:cursor-grabbing"
-              style={{
-                height: `${(terminalHeight > parentHeight ? parentHeight/terminalHeight : 1)*100}%`,
-              }}
-            ></button>
-            <div style={{
-              height: `${(scroll/terminalHeight)*100}%`
-            }}></div>
-
-          </div>
-          <button
-            className="h-8"
-            onClick={() => setScroll(i => (i - 15 < 0 ? 0 : i - 15))}
-          >
-            <SVG select={'triangle'} />
-          </button>
         </div>
       </div>
     </div>
