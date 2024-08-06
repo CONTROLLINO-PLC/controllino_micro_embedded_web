@@ -1,112 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Box, Avatar, TextField, Typography, Container } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useContext } from "react";
+import { LayoutContext } from "../layout/layout.context";
+import { Button } from "./Button";
 
-const theme = createTheme();
-const classes = {
-  button: {
-    display: 'flex',
-    justifyContent: 'center',
-    borderRadius: '15px',
-    background: 'yellow',
-    height: '35px',
-    width: '100%',
-    textDecoration: 'none',
-    marginTop: '30px',
-    marginBottom: '20px'
-  },
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginTop: '80px',
-    justifyContent: 'center'
-  },
-  border: {
-    border: '1px solid yellow',
-    borderRadius: '5px',
-    marginTop: '100px',
-    backgroundColor: '#2f2f2f'
-  }
-};
+export function Login() {
+    const { setLogin } = useContext(LayoutContext)
 
-const Login = ({ onLogin }) => {
-  const [username, setUser] = useState('');
-  const [ password, setPass ] = useState( '' );
-  
-  // Hardcoded username and password for now
-  const realuser = "admin";
-  const realpass = "admin";
+    const handleOnSubmit = (e) => {
+        e.preventDefault()
+        const user = e.target[0].value
+        const password = e.target[1].value
+        setLogin((user === password) && (user === 'admin'))
+    }
 
-  const handleLogin = () => {
-    (username === realuser && password === realpass) ? (onLogin()) : null;
-  };
+    return (
+        <div className="flex justify-center h-screen items-start pt-12 bg-[#1f1f1f]">
+            <div className="flex flex-col justify-center bg-[#2f2f2f] p-8 rounded shadow-md w-96 ring-2 ring-primary">
+                <div className="flex justify-center mt-5">
+                    <img className="w-10 rounded-full" alt='Logo' src='/favicon.ico' />
+                </div>
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Enter') {
-        const submitButton = document.getElementById('submit');
-        if (submitButton) {
-          submitButton.click();
-        }
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+                <form className="mt-8" onSubmit={handleOnSubmit}>
+                    <div className="mb-4">
+                        <div className="relative">
+                            <input type="text" name="username" className="bg-white/0 peer border-2 py-2 px-2 text-lg w-full border-primary text-gray-300 placeholder-transparent focus:outline-none focus:ring-1 focus:ring-primary/40 rounded" placeholder="user*" required />
+                            <label className="absolute left-2 -top-5 text-primary text-sm peer-placeholder-shown:text-xs peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-5 transition-all">user*</label>
+                        </div>
+                    </div>
+                    <div className="mt-6">
+                        <div className="relative">
+                            <input type="password" name="password" className="bg-white/0 peer border-2 py-2 px-2 text-lg w-full border-primary text-gray-300 placeholder-transparent focus:outline-none focus:ring-1 focus:ring-primary/40 rounded" placeholder="password*" required />
+                            <label className="absolute left-2 -top-5 text-primary text-sm peer-placeholder-shown:text-xs peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-5 transition-all">password*</label>
+                        </div>
+                    </div>
+                    <Button className={'w-full py-1 mt-10'}> Login </Button>
+                </form>
+            </div>
+        </div>
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Container component='main' maxWidth='xs' style={classes.border}>
-        <Box style={classes.container}>
-          <Avatar className='App-logo' sx = {{bottom:'30px', height: 40, backgroundColor: 'yellow'}}>
-            <img style={classes.avatar} alt='Logo' src='/favicon.ico' />
-          </Avatar>
-          <Box component='form' noValidate sx={{ mt: 1 }}>
-            <TextField
-              onChange={(e) => setUser(e.target.value)}
-              value={username}
-              margin='normal'
-              required
-              fullWidth
-              id='user'
-              label='user'
-              autoComplete='user'
-              InputProps={{
-                style: {
-                  color: 'yellow',
-                },
-              }}
-            />
-            <TextField
-              onChange={(e) => setPass(e.target.value)}
-              value={password}
-              margin='normal'
-              required
-              fullWidth
-              label='password'
-              type='password'
-              id='pass'
-              autoComplete='current-password'
-              InputProps={{
-                style: {
-                  color: 'yellow',
-                },
-              }}
-            />
-          </Box>
-          <Link id='submit' style={classes.button} onClick={handleLogin} to='/home'>
-            <Typography component='h1' variant='h6' color='#000000'>
-              Login
-            </Typography>
-          </Link>
-        </Box>
-      </Container>
-    </ThemeProvider>
-  );
-};
+    )
+}
 
-export default Login;
