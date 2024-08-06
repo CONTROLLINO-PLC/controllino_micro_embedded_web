@@ -6,7 +6,6 @@
 
 #include <ArduinoJson.h>
 #include <webapp.h>
-#include <LittleFS.h>
 
 #ifdef CONTROLLINO_MICRO_RS485
 #include <ArduinoRS485.h>
@@ -39,40 +38,6 @@ String serialRx = "";
 String serialTx = "";
 typedef enum { LF, CR, CRLF } serialTerm;
 serialTerm serialTerminator = LF;
-
-
-// Network config
-DynamicJsonDocument networkConfig(255);
-
-
-// Function to load network config from LittleFS
-void loadNetworkConfig() {
- File file = LittleFS.open("/network.config", "r");
- if (!file) {
-    Serial.println("Failed to open file for reading");
-    return;
- }
-
- String dataContent = file.readString();
- deserializeJson(networkConfig, dataContent);
- file.close();
-}
-
-
-// Function to save network config to LittleFS
-void saveNetworkConfig() {
- File file = LittleFS.open("/network.config", "w");
- if (!file) {
-    Serial.println("Failed to create file");
-    return;
- }
-
- String saveData;
- serializeJson(networkConfig, saveData);
- file.println(saveData);
- file.close();
-}
-
 
 #ifdef CONTROLLINO_MICRO_RS485
 // Init
@@ -334,24 +299,6 @@ void updateDataWs(void) {
 }
 
 void setup() {
-   // Initialize LittleFS
-  if (!LittleFS.begin()) {
-      Serial.println("An Error has occurred while mounting LittleFS");
-      return;
-  }
-
-
-  // Load network configuration
-  loadNetworkConfig();
-
-   // If no network configuration exists, use default settings
- if (networkConfig.size() == 0) {
-    networkConfig["ip"] = "10.22.1.184";
-    networkConfig["gateway"] = "10.22.1.1";
-    networkConfig["subnet"] = "255.255.255.0";
-    saveNetworkConfig();
- }
-
   // Initialize serial port
   Serial.begin(115200);
   // while (!Serial);
