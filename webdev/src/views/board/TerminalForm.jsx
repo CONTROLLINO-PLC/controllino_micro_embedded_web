@@ -8,7 +8,7 @@ export function TerminalForm() {
   const [selected, setSelected] = useState(0)
   const ref = useRef()
   const [scrolled, setScrolled] = useState(true)
-  const { serials, setSerials, setSerial } = useContext(LayoutContext)
+  const [serials, setSerials] = useState([]) // useContext(LayoutContext)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export function TerminalForm() {
         </div>
 
         <Button className='px-4' onClick={() => {
-          setSerial(message)
+          setSerials(message)
           setMessage('')
         }}>SEND</Button>
       </div>

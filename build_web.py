@@ -16,7 +16,7 @@ def main():
     os.chdir("webdev")
     if _win32:
         subprocess.run(["npm", "install"], shell=True)
-        subprocess.run(["npm", "run", "build"], shell=True)
+        subprocess.run(["npm", "run", "build-windows"], shell=True)
     else:	
         subprocess.run(["npm install"], shell=True)
         subprocess.run(["npm run build"], shell=True)
@@ -37,14 +37,16 @@ def main():
                 "..\\..\\a.exe",
                 "web/*.gz", 
                 "web/*.ico",
-                "web/assets/*.gz", 
-                "web/assets/*.png"
+                "web/*.png",
+                "web/assets/*.gz",
+                "web/assets/*.mp3",  
+                
             ], 
             shell=True , stdout=packed_fs_file)
     else:
         subprocess.run(
         [
-            "../../a.* web/*.gz web/*.ico web/assets/*.gz web/assets/*.png"
+            "../../a.* web/*.gz web/*.ico web/*.png web/assets/*.gz web/assets/*.mp3"
         ], 
         shell=True , stdout=packed_fs_file)
     packed_fs_file.close()
