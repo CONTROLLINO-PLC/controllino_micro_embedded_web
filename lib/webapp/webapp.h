@@ -25,8 +25,8 @@ extern "C" {
 #define HTTP_URL "http://0.0.0.0:80"
 #endif
 
-void webAppInit(void);
-void webAppRun(void);
+void webAppInit(struct mg_mgr* mgr, mg_tcpip_if* mif);
+void webAppRun(struct mg_mgr* mgr);
 
 #ifdef __cplusplus
 }

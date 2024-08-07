@@ -46,7 +46,7 @@ async function svg() {
       .pipe(gulp.dest("../lib/webapp/web"))
   }
   catch (err) {
-    console.error(`images processing failed: ${err}`);
+    console.error(`svg processing failed: ${err}`);
   }
 }
 
@@ -59,7 +59,19 @@ async function ico() {
       .pipe(gulp.dest("../lib/webapp/web"))
   }
   catch (err) {
-    console.error(`images processing failed: ${err}`);
+    console.error(`ico processing failed: ${err}`);
+  }
+}
+
+// Processing *.mp3
+async function mp3() {
+  try {
+    return gulp
+      .src(["./dist/assets/*.mp3"])
+      .pipe(gulp.dest("../lib/webapp/web/assets"))
+  }
+  catch (err) {
+    console.error(`mp3 processing failed: ${err}`);
   }
 }
 
@@ -120,6 +132,7 @@ async function build() {
     await img();  // Process images
     await svg();  // Process svg
     await ico();  // Process icon
+    await mp3();  // Process mp3
     await css();  // Compile and process css
     await js();   // Process javascript
     await html(); // Process html
@@ -134,6 +147,7 @@ async function build() {
 exports.img = img;
 exports.svg = svg;
 exports.ico = ico;
+exports.mp3 = mp3;
 exports.css = css;
 exports.js = js;
 exports.html = html;

@@ -11,23 +11,28 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "cp .env.dev .env && vite& sudo node ./src/dev.js",
+    "dev": "cp .env.dev .env && vite & node ./src/dev.js",
     "build": "cp .env.prod .env && vite build && gulp build --gulpfile gulpfile.cjs",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev-linux": "cp .env.dev .env && vite & sudo node ./src/dev.js",
+    "dev-windows": "copy .env.dev .env && start vite & start node ./src/dev.js",
+    "build-linux": "cp .env.prod .env && vite build && gulp build --gulpfile gulpfile.cjs",
+    "build-windows": "copy .env.prod .env && vite build && gulp build --gulpfile gulpfile.cjs"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "nodejs-websocket": "^1.7.2",
-    "websocket": "^1.0.34",
     "gulp": "^4.0.2",
     "gulp-clean-css": "^4.3.0",
     "gulp-gzip": "^1.4.2",
     "gulp-htmlmin": "^5.0.1",
     "gulp-imagemin": "^7.0.0",
-    "gulp-uglify-es": "^3.0.0"
+    "gulp-uglify-es": "^3.0.0",
+    "neo_web_server": "file:",
+    "nodejs-websocket": "^1.7.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "websocket": "^1.0.34"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

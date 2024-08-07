@@ -4,8 +4,31 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <SPI.h>
 #include <ArduinoJson.h>
 #include <webapp.h>
+
+/* Mongoose event manager */
+struct mg_mgr mgr;
+
+/* Ethernet W5500 SPI interface */
+struct mg_tcpip_spi spi = {
+    NULL,                                               // SPI data
+    [](void*) { digitalWrite(PIN_SPI_SS_ETHERNET_LIB, LOW); },          // begin transation
+    [](void*) { digitalWrite(PIN_SPI_SS_ETHERNET_LIB, HIGH); },         // end transaction
+    [](void*, uint8_t c) { return SPI.transfer(c); },  // execute transaction
+};
+
+/* TCP/IP Network interface */
+struct mg_tcpip_if mif = {
+  .mac = { 2, 0, 0, 0, 0, 0 },
+  .ip = mg_htonl(MG_U32(10, 22, 1, 184)),
+  .mask = mg_htonl(MG_U32(255, 255, 255, 0)),
+  .gw = mg_htonl(MG_U32(10, 22, 1, 254)),
+  .driver = &mg_tcpip_driver_w5500,
+  .driver_data = &spi
+};
+
 
 #ifdef CONTROLLINO_MICRO_RS485
 #include <ArduinoRS485.h>
@@ -178,8 +201,7 @@ int inputs[10] = {
 #define V_12_BITS   25.798F // 12 bits 0-25.798V
 
 // Websocket handlers
-extern void handleTxWs(const char* data, size_t len);
-extern void handleRxWs(const char* data, size_t len) {
+void handleRxWs(const char* data, size_t len) {
   // Parse JSON
   DynamicJsonDocument rxjson(256);
   DeserializationError error = deserializeJson(rxjson, data, len);
@@ -251,58 +273,69 @@ extern void handleRxWs(const char* data, size_t len) {
   }
 }
 
-// Update data over websocket
-void updateDataWs(void) {
-  // Update data
-  DynamicJsonDocument txJson(1024);
-  JsonArray data = txJson.to<JsonArray>();
-  data[0]["serial"] = serialRx.c_str(); 
-  data[1]["tmcu"] = analogReadTemp(3.3F);
-  data[1]["vsply"] = readVoltageSuply() / 1000.0F;
-  data[1]["tsens"] = readBoardTemperature();
-  data[2]["ip"] = ipAddress;
-  data[2]["gateway"] = gateway;
-  data[2]["subnet"] = subnetMask;
-  data[2]["mac"] = macAddress;
+// Websocket update
+static void ws_fn(void* param) {
+  struct mg_mgr* _mgr = (struct mg_mgr*)param;
+  struct mg_connection* c;
+  for (c = _mgr->conns; c != NULL; c = c->next) {
+    if (c->data[0] != 'W') continue;
 
-  // Digital values 
-  data[3]["do"].createNestedArray();
-  for (int i = 0; i < 8; i++) {
-    data[3]["do"][i] = digitalRead(outputs[i]) ? true : false;
-  }
-  data[3]["di"].createNestedArray();
-  for (int i = 0; i < 10; i++) {
-    data[3]["di"][i] = digitalRead(inputs[i]) ? true : false;
-  }
+    // Update data
+    DynamicJsonDocument txJson(1024);
+    JsonArray data = txJson.to<JsonArray>();
+    data[0]["serial"] = serialRx.c_str();
+    data[1]["tmcu"] = analogReadTemp(3.3F);
+    data[1]["vsply"] = readVoltageSuply() / 1000.0F;
+    data[1]["tsens"] = readBoardTemperature();
+    data[2]["ip"] = ipAddress;
+    data[2]["gateway"] = gateway;
+    data[2]["subnet"] = subnetMask;
+    data[2]["mac"] = macAddress;
 
-  // Analog values
-  data[3]["ai"].createNestedArray();
-  for (int i = 0; i < 10; i++) {
-    if (i < 6) { 
-      // Analog inputs 0-5
-      data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_23_BITS) * V_23_BITS;
+    // Digital values 
+    data[3]["do"].createNestedArray();
+    for (int i = 0; i < 8; i++) {
+      data[3]["do"][i] = digitalRead(outputs[i]) ? true : false;
     }
-    else {
-      // Digital inputs 6-9
-      data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_12_BITS) * V_12_BITS;
+    data[3]["di"].createNestedArray();
+    for (int i = 0; i < 10; i++) {
+      data[3]["di"][i] = digitalRead(inputs[i]) ? true : false;
     }
-  }
-  
-  // Send data
-  size_t docSize = measureJson(data);
-  char wsWriter[docSize];
-  serializeJson(data, &wsWriter, docSize);
-  handleTxWs((const char*)&wsWriter, docSize);
 
-  // Clear rx serial buffer
-  serialRx = "";
+    // Analog values
+    data[3]["ai"].createNestedArray();
+    for (int i = 0; i < 10; i++) {
+      if (i < 6) {
+        // Analog inputs 0-5
+        data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_23_BITS) * V_23_BITS;
+      }
+      else {
+        // Digital inputs 6-9
+        data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_12_BITS) * V_12_BITS;
+      }
+    }
+
+    // Send data
+    size_t docSize = measureJson(data);
+    char wsWriter[docSize];
+    serializeJson(data, &wsWriter, docSize);
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "%s", wsWriter);
+
+    // Clear rx serial buffer
+    serialRx = "";
+  }
 }
 
 void setup() {
   // Initialize serial port
   Serial.begin(115200);
-  // while (!Serial);
-  // delay(2000);
+  while (!Serial);
+  delay(2000);
+
+  // Setup SPI
+  pinMode(PIN_SPI_SS_ETHERNET_LIB, OUTPUT);
+  digitalWrite(PIN_SPI_SS_ETHERNET_LIB, HIGH);
+  SPI.begin();
 
 #ifdef LED_BLINK
   pinMode(LED_BUILTIN, OUTPUT);
@@ -327,11 +360,34 @@ void setup() {
 #endif
 
   // Initialize app server
-  webAppInit();
+  webAppInit(&mgr, &mif);
+
+  // Start a 5 sec timer, print status message periodically
+  mg_timer_add(
+    &mgr, 5000, MG_TIMER_REPEAT,
+    [](void*) { MG_INFO(("ethernet: %s", mg_tcpip_driver_w5500.up(&mif) ? "up" : "down"));}
+    , NULL
+  );
+
+  // WS timer
+  mg_timer_add(&mgr, 1000, MG_TIMER_REPEAT, ws_fn, &mgr);
+
+  // Update board connection data
+  sprintf(macAddress, "%02x:%02x:%02x:%02x:%02x:%02x",
+    mif.mac[0], mif.mac[1], mif.mac[2], mif.mac[3], mif.mac[4], mif.mac[5]);
+
+  uint8_t* ip = (uint8_t*)&mif.ip;
+  sprintf(ipAddress, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+
+  uint8_t* gw = (uint8_t*)&mif.gw;
+  sprintf(gateway, "%d.%d.%d.%d", gw[0], gw[1], gw[2], gw[3]);
+
+  uint8_t* mask = (uint8_t*)&mif.mask;
+  sprintf(subnetMask, "%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]);
 }
 
 void loop() {
-  webAppRun();
+  webAppRun(&mgr);
 
   // Read/Write serial data
 #ifdef CONTROLLINO_MICRO_RS485
