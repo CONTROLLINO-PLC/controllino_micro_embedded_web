@@ -8,7 +8,8 @@ let y = 0;
 let data = {};
 const status = [ { "status" : 0, "crc32":"9ec4ace4", "size": 84520, "timestamp": "24/09/2023, 18:01:04" } ,
 { "status" : 1, "crc32":"0", "size": "0", "timestamp": '01/01/1970, 01:00:00' }
-] 
+];
+const terminal = 'recived from the device' ; 
 const modbus = {
     "enable": true,
     "interval": 500,
@@ -112,6 +113,10 @@ const serverREST = http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
     }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/terminal'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify('recived from device'));
+    }
     else {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('Device API out of order');
@@ -138,7 +143,7 @@ let serverWS = ws.createServer(function (conn) {
     setInterval(() => {
         x = generate(-50.012, 180.156);
         y = x + 13.031;
-        data = {"tmcu": x,"vsupply": y,"tsens": x};
+        data = {"tmcu": x,"vsupply": y,"tsens": x, 'terminal': `${terminal} : ${Math.random()}`};
             try {
                 conn.send(JSON.stringify(data));
             } catch (error) {

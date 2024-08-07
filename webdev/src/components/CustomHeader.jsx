@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { Button } from "./Button";
 import { LayoutContext } from "../layout/layout.context";
+import { SVG } from "./SVG";
 
 export function CustomHeader(props) {
   const { setLogin } = useContext(LayoutContext)
@@ -13,7 +14,14 @@ export function CustomHeader(props) {
         {props.children}
       </div>
 
-      <Button onClick={() => setLogin(false)} className='px-2'>Logout</Button>
+      <div className="flex gap-4">
+        <Button onClick={() => window.location.reload()} className='bg-transparent  hover:bg-transparent' title='reload'>
+          <SVG select='reload' />
+        </Button>
+        <Button onClick={() => setLogin(false)} className='bg-transparent hover:bg-transparent' title='logout'>
+          <SVG select='logout' />
+        </Button>
+      </div>
     </header>
   )
 }

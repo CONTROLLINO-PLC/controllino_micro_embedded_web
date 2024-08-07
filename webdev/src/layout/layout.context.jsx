@@ -18,6 +18,7 @@ export const LayoutContext = createContext({
     inputAlert: '', setInputAlert: () => {}
   },
   sliders: [0, 0, 0, 0, 0, 0, 0, 0], setSlider: () => { },
+  serials: [], setSerials: () => { }, setSerial: () => {},
   clickSetInput: () => { },
   currentLimits: [0, 0, 0, 0, 0, 0, 0, 0], setCurrentLimit: () => { },
   checkboxs: [false, false, false, false, false, false, false, false], setCheckbox: () => { },
@@ -29,6 +30,7 @@ export function LayoutProvider(props) {
   const [login, setLogin] = useState(false)
   const [vsupply, setVsupply] = useState(0)
   const [tmcu, setTmcu] = useState(0)
+  const [serials, setSerials] = useState([])
   const [sliders, setSliders] = useState([0, 0, 0, 0, 0, 0, 0, 0])
   const [currentLimits, setCurrentLimits] = useState([0, 0, 0, 0, 0, 0, 0, 0])
   const [inputs, setInputs] = useState([[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]])
@@ -103,11 +105,25 @@ export function LayoutProvider(props) {
     }))
   }
 
+  const setSerial = async (message) => {
+     // TODO: hacer la peticion post con los parametros adecuados
+    await fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/terminal`, {
+        method: 'POST',
+        body: { terminal: message }
+      }).then(i => i.json())
+    setSerials(i => ([...i, `send<:::>${message}`]))
+  }
+
   socket.onmessage = useCallback((evt) => {
     if (!evt.data) return;
     if (evt.data === 'h') return; // Heartbeat ingnored
     const now = new Date()
     const parsedData = JSON.parse(evt.data);
+  
+    if (parsedData.terminal) {
+      setSerials(i => ([...i, `recive<:::>${parsedData.terminal}`]))
+    }
+
     setTmcu(parsedData.tmcu)
     setVsupply(parsedData.vsupply)
   }, []);
@@ -164,6 +180,7 @@ export function LayoutProvider(props) {
         currentLimitAlert, setCurrentLimitAlert,
         inputAlert, setInputAlert,
       },
+      serials, setSerials, setSerial,
       sliders, setSlider,
       checkboxs, setCheckbox,
       switchs, setSwitch,
