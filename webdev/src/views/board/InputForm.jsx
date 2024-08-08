@@ -9,7 +9,7 @@ function Row({ firstInput, secondInput, onChangeSecondInput, addClassName, click
                 <Input value={+firstInput} readOnly className='cursor-default' />
             </div>
             <div className="col-span-2">
-                <Input type='number' min={0} max={30}  value={+secondInput} onChange={e => onChangeSecondInput(+e.target.value)} />
+                <Input type='number' min={0} max={30} value={+secondInput} onChange={e => onChangeSecondInput(+e.target.value)} className='border outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:_textfield]' />
             </div>
             <Button onClick={clickSetInput} disabled={secondInput < 0 || secondInput > 30} className='px-auto'>SET</Button>
         </div>
