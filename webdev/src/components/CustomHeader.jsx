@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import PropTypes from "prop-types";
 import { Button } from "./Button";
 import { LayoutContext } from "../layout/layout.context";
 import { SVG } from "./SVG";
@@ -25,6 +26,11 @@ export function CustomHeader(props) {
     </header>
   )
 }
+
+CustomHeader.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 export function InfoHeader(props) {
   return (
     <div
@@ -32,3 +38,7 @@ export function InfoHeader(props) {
     >{props.text}</div>
   )
 }
+
+InfoHeader.propTypes = {
+  text: PropTypes.string.isRequired,
+};
