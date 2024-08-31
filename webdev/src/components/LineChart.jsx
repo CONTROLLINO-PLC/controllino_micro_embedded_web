@@ -1,12 +1,16 @@
+import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
 export function LineChart({ data }) {
+LineChart.propTypes = {
+  data: PropTypes.array.isRequired,
+};
   const [min, setMin] = useState(0)
   const [proportion, setProportion] = useState(1)
   const [graph, setGraph] = useState([])
   const [secondGraph, setSecondGraph] = useState([])
   const [thirdGraph, setThirdGraph] = useState([])
-  const [_, ...minusOne] = graph
+  const [...minusOne] = graph
 
   useEffect(() => {
     const max = Math.max(...data.map(d => d[1]), ...data.map(d => d[2]), ...data.map(d => d[3]))
@@ -121,4 +125,4 @@ export function LineChart({ data }) {
       </g>
     </svg>
   );
-};
+}

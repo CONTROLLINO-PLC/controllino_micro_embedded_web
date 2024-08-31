@@ -1,4 +1,13 @@
+import PropTypes from 'prop-types';
+
 export function Input({ suffix, className, alignLeft, ...props }) {
+  // Add 'suffix' to props validation
+  Input.propTypes = {
+    suffix: PropTypes.node, // or the appropriate prop type
+    className: PropTypes.string,
+    alignLeft: PropTypes.bool,
+    // ... other prop validations
+  };
   return (
     <div className="relative">
       <input

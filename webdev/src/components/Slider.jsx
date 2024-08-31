@@ -34,4 +34,4 @@ export function Slider({ value, onChange }) {
         </div>
 
     );
-};
+}
