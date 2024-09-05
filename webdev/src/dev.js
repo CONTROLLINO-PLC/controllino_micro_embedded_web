@@ -127,9 +127,9 @@ serverREST.listen(port, () => {
     console.log('Server running');
 });
 
-let serverWS = ws.createServer(function (conn) {
+ws.createServer(function (conn) {
     console.log('connection established')
-    conn.on('error', (err) => {
+    conn.on('error', () => {
     });
     conn.on('close', () => {
     });
@@ -137,6 +137,7 @@ let serverWS = ws.createServer(function (conn) {
         try {
             console.log(JSON.parse(str));
         } catch (error) {
+            console.log(error);
         }
     });
 
@@ -147,6 +148,7 @@ let serverWS = ws.createServer(function (conn) {
             try {
                 conn.send(JSON.stringify(data));
             } catch (error) {
+                console.log(error);
             }
     }, 200);
 }).listen(80) + "/ws";
