@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 
 // Socket connection management
 const socket = new WebSocket(`ws://${window.location.hostname}:80/ws`);
@@ -117,7 +117,7 @@ export function LayoutProvider(props) {
   socket.onmessage = useCallback((evt) => {
     if (!evt.data) return;
     if (evt.data === 'h') return; // Heartbeat ingnored
-    const now = new Date()
+    // const now = new Date()
     const parsedData = JSON.parse(evt.data);
   
     if (parsedData.terminal) {

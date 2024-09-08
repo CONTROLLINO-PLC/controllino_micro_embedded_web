@@ -20,7 +20,7 @@ export function Checkbox({ checked, setChecked }) {
                     }`}
             >
                 {checked && (
-                    <SVG select={'checkbox'} />
+                    <SVG select='checkbox' />
                 )}
             </div>
         </label>
