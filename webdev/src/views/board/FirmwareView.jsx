@@ -4,18 +4,18 @@ import { LayoutContext } from "../../layout/layout.context";
 
 function Current(props) {
     const input = useRef(null);
-    const [upload, setUpload] = useState(null); // Upload promise
+    const setUpload = useState(null)[1]; // Upload promise
     const [statusUploading, setStatusUploading] = useState("Upload firmware information status:");   // Current upload status
     const btn = useRef(null);
     const { setNotification } = useContext(LayoutContext)
 
-    const onclick = function (ev) {
+    const onclick = function () {
         let fn; setUpload(x => fn = x);
         if (!fn) input.current.click();  // No upload in progress, show file dialog
         return fn;
     };
 
-    const onupload = function (ok, name, size) {
+    const onupload = function (ok) {
         if (!ok) return false;
         setNotification(true)
         setTimeout(() => {
@@ -152,7 +152,7 @@ export function FirmwareView() {
     const status_array = ["MG_OTA_UNAVAILABLE", "MG_OTA_FIRST_BOOT", "MG_OTA_UNCOMMITTED", "MG_OTA_COMMITTED"];
     const { setNotification } = useContext(LayoutContext)
 
-    const onstatus = ev => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/firmware/status`)
+    const onstatus = () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/firmware/status`)
         .then(r => r.json())
         .then(r => {
             r.forEach((item, index) => {
@@ -170,7 +170,7 @@ export function FirmwareView() {
             });
         });
 
-    const oncommit = ev => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/firmware/commit`)
+    const oncommit = () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/firmware/commit`)
         .then(r => r.json())
         .then(() => {
             setNotification(true)
@@ -180,7 +180,7 @@ export function FirmwareView() {
         })
         .then(onstatus)
 
-    const onreboot = ev => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/device/reset`)
+    const onreboot = () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/device/reset`)
         .then(r => r.json())
         .then(() => {
             setTimeout(() => {
@@ -190,7 +190,7 @@ export function FirmwareView() {
         })
         .catch(error => console.error("Error:", error));
 
-    const onrollback = ev => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/firmware/rollback`)
+    const onrollback = () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/firmware/rollback`)
         .then(r => r.json())
         .then(() => {
             setNotification(true)

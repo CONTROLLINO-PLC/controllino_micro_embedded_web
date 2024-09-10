@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Input } from "../../components";
 
-function NetworkFormItem({ name, value }) {
+function NetworkFormItem({ value }) {
     return (
         <div className="flex flex-col items-center gap-2 my-4 mx-2">
             {value}
@@ -35,7 +35,7 @@ export function NetworkView() {
         reData();
     }, []);
 
-    const reData = async ev => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/network/settings`)
+    const reData = async () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/network/settings`)
         .then(r => r.json())
         .then(r => {
             const ipValues = r.ip.split(".");

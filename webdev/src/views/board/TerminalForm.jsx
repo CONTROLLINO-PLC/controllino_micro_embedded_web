@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { Button, Input, SVG, Select } from "../../components";
+import { Button, Input, Select } from "../../components";
 import { LayoutContext } from "../../layout/layout.context";
 
 const VALUES = ['New Line', 'Carriage Return', 'Both NL & CR']
