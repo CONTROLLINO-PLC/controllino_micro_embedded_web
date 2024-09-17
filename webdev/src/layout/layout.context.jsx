@@ -5,8 +5,8 @@ const socket = new WebSocket(`ws://${window.location.hostname}:80/ws`);
 
 export const LayoutContext = createContext({
   login: false,
-  vsupply: 0, setVsupply: () => { },
-  tmcu: 0, setTmcu: () => { },
+  vsupply: 0.0, setVsupply: () => { },
+  tmcu: 0.0, setTmcu: () => { },
   notification: true, setNotification: () => { },
   alerts: {
     tempAlert: '', setTempAlert: () => { },

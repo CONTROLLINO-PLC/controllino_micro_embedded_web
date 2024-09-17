@@ -280,47 +280,49 @@ static void ws_fn(void* param) {
   for (c = _mgr->conns; c != NULL; c = c->next) {
     if (c->data[0] != 'W') continue;
 
-    // Update data
-    DynamicJsonDocument txJson(1024);
-    JsonArray data = txJson.to<JsonArray>();
-    data[0]["serial"] = serialRx.c_str();
-    data[1]["tmcu"] = analogReadTemp(3.3F);
-    data[1]["vsply"] = readVoltageSuply() / 1000.0F;
-    data[1]["tsens"] = readBoardTemperature();
-    data[2]["ip"] = ipAddress;
-    data[2]["gateway"] = gateway;
-    data[2]["subnet"] = subnetMask;
-    data[2]["mac"] = macAddress;
+    // // Update data
+    // DynamicJsonDocument txJson(1024);
+    // JsonArray data = txJson.to<JsonArray>();
+    // data[0]["serial"] = serialRx.c_str();
+    // data[1]["tmcu"] = analogReadTemp(3.3F);
+    // data[1]["vsply"] = readVoltageSuply() / 1000.0F;
+    // data[1]["tsens"] = readBoardTemperature();
+    // data[2]["ip"] = ipAddress;
+    // data[2]["gateway"] = gateway;
+    // data[2]["subnet"] = subnetMask;
+    // data[2]["mac"] = macAddress;
 
-    // Digital values 
-    data[3]["do"].createNestedArray();
-    for (int i = 0; i < 8; i++) {
-      data[3]["do"][i] = digitalRead(outputs[i]) ? true : false;
-    }
-    data[3]["di"].createNestedArray();
-    for (int i = 0; i < 10; i++) {
-      data[3]["di"][i] = digitalRead(inputs[i]) ? true : false;
-    }
+    // // Digital values 
+    // data[3]["do"].createNestedArray();
+    // for (int i = 0; i < 8; i++) {
+    //   data[3]["do"][i] = digitalRead(outputs[i]) ? true : false;
+    // }
+    // data[3]["di"].createNestedArray();
+    // for (int i = 0; i < 10; i++) {
+    //   data[3]["di"][i] = digitalRead(inputs[i]) ? true : false;
+    // }
 
-    // Analog values
-    data[3]["ai"].createNestedArray();
-    for (int i = 0; i < 10; i++) {
-      if (i < 6) {
-        // Analog inputs 0-5
-        data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_23_BITS) * V_23_BITS;
-      }
-      else {
-        // Digital inputs 6-9
-        data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_12_BITS) * V_12_BITS;
-      }
-    }
+    // // Analog values
+    // data[3]["ai"].createNestedArray();
+    // for (int i = 0; i < 10; i++) {
+    //   if (i < 6) {
+    //     // Analog inputs 0-5
+    //     data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_23_BITS) * V_23_BITS;
+    //   }
+    //   else {
+    //     // Digital inputs 6-9
+    //     data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_12_BITS) * V_12_BITS;
+    //   }
+    // }
 
-    // Send data
-    size_t docSize = measureJson(data);
-    char wsWriter[docSize];
-    serializeJson(data, &wsWriter, docSize);
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "%s", wsWriter);
+    // // Send data
+    // size_t docSize = measureJson(data);
+    // char wsWriter[docSize];
+    // serializeJson(data, &wsWriter, docSize);
 
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m:%.05f,%m:%.05f,%m:%.05f}", MG_ESC("vsupply"),
+      24.0F, MG_ESC("tmcu"), analogReadTemp(3.3F), MG_ESC("tsens"), readBoardTemperature());
+    
     // Clear rx serial buffer
     serialRx = "";
   }
