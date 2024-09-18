@@ -320,9 +320,54 @@ static void ws_fn(void* param) {
     // char wsWriter[docSize];
     // serializeJson(data, &wsWriter, docSize);
 
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT, "{%m:%.05f,%m:%.05f,%m:%.05f}", MG_ESC("vsupply"),
-      24.0F, MG_ESC("tmcu"), analogReadTemp(3.3F), MG_ESC("tsens"), readBoardTemperature());
-    
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT,
+      "{%m:%.05f,%m:%.05f,%m:%.05f,%m:%c%s%c}",
+      MG_ESC("vsupply"), readVoltageSuply() / 1000.0F,
+      MG_ESC("tmcu"), analogReadTemp(3.3F),
+      MG_ESC("tsens"), readBoardTemperature(),
+      MG_ESC("rx"), '"', serialRx.c_str(), '"'
+    );
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT,
+      "{%m:[%u,%u,%u,%u,%u,%u,%u,%u]}",
+      MG_ESC("do"),
+      digitalRead(outputs[0]),
+      digitalRead(outputs[1]),
+      digitalRead(outputs[2]),
+      digitalRead(outputs[3]),
+      digitalRead(outputs[4]),
+      digitalRead(outputs[5]),
+      digitalRead(outputs[6]),
+      digitalRead(outputs[7])
+    );
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT,
+      "{%m:[%u,%u,%u,%u,%u,%u,%u,%u,%u,%u]}",
+      MG_ESC("di"),
+      digitalRead(inputs[0]),
+      digitalRead(inputs[1]),
+      digitalRead(inputs[2]),
+      digitalRead(inputs[3]),
+      digitalRead(inputs[4]),
+      digitalRead(inputs[5]),
+      digitalRead(inputs[6]),
+      digitalRead(inputs[7]),
+      digitalRead(inputs[8]),
+      digitalRead(inputs[9])
+    );
+    mg_ws_printf(c, WEBSOCKET_OP_TEXT,
+      "{%m:[%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f]}",
+      MG_ESC("ai"),
+      (float)analogRead(inputs[0])* V_23_BITS / RES_23_BITS,
+      (float)analogRead(inputs[1])* V_23_BITS / RES_23_BITS,
+      (float)analogRead(inputs[2])* V_23_BITS / RES_23_BITS,
+      (float)analogRead(inputs[3])* V_23_BITS / RES_23_BITS,
+      (float)analogRead(inputs[4])* V_23_BITS / RES_23_BITS,
+      (float)analogRead(inputs[5])* V_23_BITS / RES_23_BITS,
+      (float)analogRead(inputs[6])* V_12_BITS / RES_12_BITS,
+      (float)analogRead(inputs[7])* V_12_BITS / RES_12_BITS,
+      (float)analogRead(inputs[8])* V_12_BITS / RES_12_BITS,
+      (float)analogRead(inputs[9])* V_12_BITS / RES_12_BITS
+    );
+
     // Clear rx serial buffer
     serialRx = "";
   }
