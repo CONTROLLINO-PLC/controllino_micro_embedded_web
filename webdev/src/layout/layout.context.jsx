@@ -66,13 +66,16 @@ export function LayoutProvider ( props ) {
   }
 
   const setCurrentLimit = async ( index, value ) => {
-    if ( value >= 500 && value <= 3000 ) {
-      await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
+    console.log( value, index )
+    if ( value >= 0.5 && value <= 3 ) {
+      let _currentLimits = currentLimits
+      _currentLimits[ index ] = value
+      await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
         method: 'POST',
-        body: { id: `current_limits-${ index }`, value }
+        body: { id: `limits`, _currentLimits }
       } ).then( j => j.json() ).then( () => {
         doHeartbit()
-        setCurrentLimits( i => i.map( ( v, i ) => i === index ? value : v ) )
+        setCurrentLimits( _currentLimits )
       } )
     }
   }
@@ -164,11 +167,10 @@ export function LayoutProvider ( props ) {
       }, 5000 );
     };
     
-    // fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs` ).then( i => i.json() ).then( ( data ) => {
-    //   if ( data.currentLimits ) setCurrentLimits( data.currentLimits )
-    // } )
-    
-    // fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs` ).then( i => i.json() ).then( ( data ) => {
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings` )
+      .then( i => i.json() ).then( ( data ) => {if ( data.limits ) setCurrentLimits( data.limits ) } )
+
+    // fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` ).then( i => i.json() ).then( ( data ) => {
     //   if ( data.thresholds ) setThresholds( data.thresholds )
     // } )
   }, [] );

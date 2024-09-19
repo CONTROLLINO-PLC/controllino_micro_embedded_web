@@ -50,12 +50,6 @@ void ledBlink() {
 }
 #endif
 
-// Board connection data
-char macAddress[18];
-char ipAddress[16];
-char gateway[16];
-char subnetMask[16];
-
 // Serial configs
 String serialRx = "";
 String serialTx = "";
@@ -280,46 +274,7 @@ static void ws_fn(void* param) {
   for (c = _mgr->conns; c != NULL; c = c->next) {
     if (c->data[0] != 'W') continue;
 
-    // // Update data
-    // DynamicJsonDocument txJson(1024);
-    // JsonArray data = txJson.to<JsonArray>();
-    // data[0]["serial"] = serialRx.c_str();
-    // data[1]["tmcu"] = analogReadTemp(3.3F);
-    // data[1]["vsply"] = readVoltageSuply() / 1000.0F;
-    // data[1]["tsens"] = readBoardTemperature();
-    // data[2]["ip"] = ipAddress;
-    // data[2]["gateway"] = gateway;
-    // data[2]["subnet"] = subnetMask;
-    // data[2]["mac"] = macAddress;
-
-    // // Digital values 
-    // data[3]["do"].createNestedArray();
-    // for (int i = 0; i < 8; i++) {
-    //   data[3]["do"][i] = digitalRead(outputs[i]) ? true : false;
-    // }
-    // data[3]["di"].createNestedArray();
-    // for (int i = 0; i < 10; i++) {
-    //   data[3]["di"][i] = digitalRead(inputs[i]) ? true : false;
-    // }
-
-    // // Analog values
-    // data[3]["ai"].createNestedArray();
-    // for (int i = 0; i < 10; i++) {
-    //   if (i < 6) {
-    //     // Analog inputs 0-5
-    //     data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_23_BITS) * V_23_BITS;
-    //   }
-    //   else {
-    //     // Digital inputs 6-9
-    //     data[3]["ai"][i] = ((float)analogRead(inputs[i]) / RES_12_BITS) * V_12_BITS;
-    //   }
-    // }
-
-    // // Send data
-    // size_t docSize = measureJson(data);
-    // char wsWriter[docSize];
-    // serializeJson(data, &wsWriter, docSize);
-
+    // Send data
     mg_ws_printf(c, WEBSOCKET_OP_TEXT,
       "{%m:%.05f,%m:%.05f,%m:%.05f,%m:%c%s%c}",
       MG_ESC("vsupply"), readVoltageSuply() / 1000.0F,
@@ -373,6 +328,43 @@ static void ws_fn(void* param) {
   }
 }
 
+// Http handlers
+size_t print_network_settings(void (*out)(char, void*), void* ptr, va_list* ap) {
+  uint8_t* ip = (uint8_t*)&mif.ip;
+  uint8_t* gw = (uint8_t*)&mif.gw;
+  uint8_t* mask = (uint8_t*)&mif.mask;
+  return mg_xprintf(out, ptr,
+    "{%m:%c%d.%d.%d.%d%c,%m:%c%d.%d.%d.%d%c,%m:%c%d.%d.%d.%d%c,%m:%c%02x:%02x:%02x:%02x:%02x:%02x%c}\n",
+    MG_ESC("ip"), '"', ip[0], ip[1], ip[2], ip[3], '"', MG_ESC("gw"), '"',
+    gw[0], gw[1], gw[2], gw[3], '"', MG_ESC("mask"), '"', mask[0], mask[1], mask[2], mask[3], '"',
+    MG_ESC("mac"), '"', mif.mac[0], mif.mac[1], mif.mac[2], mif.mac[3], mif.mac[4], mif.mac[5], '"');
+}
+
+size_t print_outputs_settings(void (*out)(char, void*), void* ptr, va_list* ap) {
+  return mg_xprintf(out, ptr,
+    "{%m:[%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f]}\n",
+    MG_ESC("limits"),
+    (float)getOutCurrentLim(outputs[0]) / 1000.0F,
+    (float)getOutCurrentLim(outputs[1]) / 1000.0F,
+    (float)getOutCurrentLim(outputs[2]) / 1000.0F,
+    (float)getOutCurrentLim(outputs[3]) / 1000.0F,
+    (float)getOutCurrentLim(outputs[4]) / 1000.0F,
+    (float)getOutCurrentLim(outputs[5]) / 1000.0F,
+    (float)getOutCurrentLim(outputs[6]) / 1000.0F,
+    (float)getOutCurrentLim(outputs[7]) / 1000.0F
+  );
+}
+
+void set_outputs_settings(struct mg_str* body) {
+  struct mg_str val, key;
+  key = mg_str("$.limits");
+  for (size_t i = 0; i < 8; i++) {
+    mg_json_next(*body, i, &key, &val);
+    Serial.printf("Setting output %d current limit to %s A %u mA\n", i, val.ptr, (uint16_t)(atof(val.ptr)) * 1000);
+    // setOutCurrentLim(outputs[i], (uint16_t)(atof(val.ptr)) * 1000);
+  }
+}
+
 void setup() {
   // Initialize serial port
   Serial.begin(115200);
@@ -418,19 +410,6 @@ void setup() {
 
   // WS timer
   mg_timer_add(&mgr, 1000, MG_TIMER_REPEAT, ws_fn, &mgr);
-
-  // Update board connection data
-  sprintf(macAddress, "%02x:%02x:%02x:%02x:%02x:%02x",
-    mif.mac[0], mif.mac[1], mif.mac[2], mif.mac[3], mif.mac[4], mif.mac[5]);
-
-  uint8_t* ip = (uint8_t*)&mif.ip;
-  sprintf(ipAddress, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-
-  uint8_t* gw = (uint8_t*)&mif.gw;
-  sprintf(gateway, "%d.%d.%d.%d", gw[0], gw[1], gw[2], gw[3]);
-
-  uint8_t* mask = (uint8_t*)&mif.mask;
-  sprintf(subnetMask, "%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]);
 }
 
 void loop() {

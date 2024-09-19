@@ -112,6 +112,24 @@ static void handle_device_reset(struct mg_connection* c) {
   mg_timer_add(c->mgr, 500, 0, (void (*)(void*)) mg_device_reset, NULL);
 }
 
+extern size_t print_network_settings(void (*out)(char, void*), void* ptr, va_list* ap);
+
+static void handle_network_settings(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "%M\n", print_network_settings);
+}
+
+extern size_t print_outputs_settings(void (*out)(char, void*), void* ptr, va_list* ap);
+extern void set_outputs_settings(struct mg_str* body);
+
+static void handle_outputs_settings_get(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "%M\n", print_outputs_settings);
+}
+
+static void handle_outputs_settings_set(struct mg_connection* c, struct mg_str* body) {
+  set_outputs_settings(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
 // HTTP request handler function
 static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
   if (ev == MG_EV_HTTP_MSG) {
@@ -138,6 +156,17 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
     }
     else if (mg_http_match_uri(hm, "/api/device/reset")) {
       handle_device_reset(c);
+    }
+    else if (mg_http_match_uri(hm, "/api/network/settings")) {
+      handle_network_settings(c);
+    }
+    else if (mg_http_match_uri(hm, "/api/outputs/settings")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_outputs_settings_set(c, &(hm->body));
+      }
+      else {
+        handle_outputs_settings_get(c);
+      }
     }
     else {
       // handle /home as /

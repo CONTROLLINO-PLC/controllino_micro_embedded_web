@@ -33,10 +33,10 @@ export function InputForm() {
             {
                 readings.map((i, index) => (
                     <Row
-                        key={index}
+                        key={ index }
                         addClassName={index === 6 ? 'mt-4' : ''}
                         reading={i}
-                        threshold={ thresholds[index]}
+                        threshold={thresholds[index]}
                         clickSetThreshold={ () => clickSetThreshold( index, thresholds[index])}
                         onChangeThreshold={ v => setThreshold(index, v)}
                     />
