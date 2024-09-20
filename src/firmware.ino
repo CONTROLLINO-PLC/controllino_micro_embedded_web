@@ -340,6 +340,33 @@ size_t print_network_settings(void (*out)(char, void*), void* ptr, va_list* ap) 
     MG_ESC("mac"), '"', mif.mac[0], mif.mac[1], mif.mac[2], mif.mac[3], mif.mac[4], mif.mac[5], '"');
 }
 
+size_t print_inputs_settings(void (*out)(char, void*), void* ptr, va_list* ap) {
+  return mg_xprintf(out, ptr,
+    "{%m:[%u,%u,%u,%u,%u,%u,%u,%u,%u,%u]}\n",
+    MG_ESC("thresholds"),
+    getDigitalThreshold(inputs[0]),
+    getDigitalThreshold(inputs[1]),
+    getDigitalThreshold(inputs[2]),
+    getDigitalThreshold(inputs[3]),
+    getDigitalThreshold(inputs[4]),
+    getDigitalThreshold(inputs[5]),
+    getDigitalThreshold(inputs[6]),
+    getDigitalThreshold(inputs[7]),
+    getDigitalThreshold(inputs[8]),
+    getDigitalThreshold(inputs[9]
+  ));
+}
+
+void set_inputs_settings(struct mg_str* body) {
+  struct mg_str val, key;
+  key = mg_str("$.thresholds");
+  for (size_t i = 0; i < 10; i++) {
+    mg_json_next(*body, i, &key, &val);
+    Serial.printf("Setting input %d current limit to %s V\n", i, val.ptr);
+    // setOutCurrentLim(outputs[i], (uint16_t)(atof(val.ptr)) * 1000);
+  }
+}
+
 size_t print_outputs_settings(void (*out)(char, void*), void* ptr, va_list* ap) {
   return mg_xprintf(out, ptr,
     "{%m:[%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f]}\n",
