@@ -94,7 +94,7 @@ const serverREST = http.createServer((req, res) => {
         res.end(JSON.stringify({
             sliders: [50,2,3,4,5,56,17,8],
             checkboxs: [false, false, true, true, false, false, true, true],
-            currentLimits: [500,2200,3000,2000,1000,560,1700,2800],
+            currentLimits: [0.5,2,3,2,1,0.56,1.7,2.8],
             switchs: [false, false, true, true, false, false, true, true],
         }));
     }

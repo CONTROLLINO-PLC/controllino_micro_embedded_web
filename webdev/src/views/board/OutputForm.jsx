@@ -6,7 +6,7 @@ function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, 
     return (
         <div className="grid grid-cols-12 items-center gap-4">
             <div className="col-span-3">
-                <Input type='number' min={0.4} max={3.1} className='w-16 border outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:_textfield]' value={currentLimit} onChange={onChangeCurrentLimit} />
+                <Input type='number' min='0.5' max='3' step='0.01' className='w-16 border outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:_textfield]' value={currentLimit} onChange={onChangeCurrentLimit} />
             </div>
             <div className="col-span-9 flex justify-between gap-4 items-center">
                 <Button className='px-2 col-span-2'>SET</Button>
@@ -37,10 +37,10 @@ export function OuputForm() {
                 sliders.map((i, index) => (
                     <Row
                         key={index}
-                        currentLimit={currentLimits[index].toFixed(1)}
-                        onChangeCurrentLimit={(e) => setCurrentLimit(index, e.target.value)}
+                        currentLimit={currentLimits[index]}
+                        onChangeCurrentLimit={(e) => setCurrentLimit(index, +e.target.value)}
                         slider={i}
-                        onChangeSlider={(e) => setSlider(index, e.target.value)}
+                        onChangeSlider={(e) => setSlider(index, +e.target.value)}
                         checkbox={checkboxs[index]}
                         onChangeCheckbox={(v) => setCheckbox(index, v)}
                         switchValue={switchs[index]}

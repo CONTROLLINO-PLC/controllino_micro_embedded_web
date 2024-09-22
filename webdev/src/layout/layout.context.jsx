@@ -65,19 +65,28 @@ export function LayoutProvider ( props ) {
     } ) )
   }
 
-  const setCurrentLimit = async ( index, value ) => {
-    console.log( value, index )
-    if ( value >= 0.5 && value <= 3 ) {
-      let _currentLimits = currentLimits
-      _currentLimits[ index ] = value
-      await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
+  // const setCurrentLimit = async ( index, value ) => {
+  //   if ( value >= 0.5 && value <= 3 ) {
+  //     let _currentLimits = currentLimits
+  //     _currentLimits[ index ] = value
+  //     await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
+  //       method: 'POST',
+  //       body: { id: `limits`, _currentLimits }
+  //     } ).then( j => j.json() ).then( () => {
+  //       doHeartbit()
+  //       setCurrentLimits( _currentLimits )
+  //     } )
+  //   }
+  // }
+
+  const setCurrentLimit = async (index, value) => {
+    if (value >= 0.5 && value <= 3) {
+      await fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
         method: 'POST',
-        body: { id: `limits`, _currentLimits }
-      } ).then( j => j.json() ).then( () => {
-        doHeartbit()
-        setCurrentLimits( _currentLimits )
-      } )
+        body: { id: `limits-${index}`, value }
+      }).then(j => j.json())
     }
+    setCurrentLimits(i => i.map((v, i) => i === index ? value : v))
   }
 
   const setThreshold = ( index, value ) => {

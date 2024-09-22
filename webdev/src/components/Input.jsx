@@ -1,11 +1,5 @@
-import PropTypes from 'prop-types';
 
 export function Input({ suffix, className, alignLeft, ...props }) {
-  Input.propTypes = {
-    suffix: PropTypes.node,
-    className: PropTypes.string,
-    alignLeft: PropTypes.bool,
-  };
   return (
     <div className="relative">
       <input
