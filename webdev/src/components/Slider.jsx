@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export function Slider({ value, onChange }) {
-    const [selected, setSelected] = useState(false)
+    const [selected, setSelected] = useState(false);
 
     return (
         <div className="relative w-full flex items-center">
@@ -14,7 +14,7 @@ export function Slider({ value, onChange }) {
 
             <div
                 id="sliderThumb"
-                className={"absolute my-auto -m-2.5 w-5 h-5  rounded-full bg-primary  "}
+                className={"absolute my-auto -m-2.5 w-5 h-5 rounded-full bg-primary"}
                 style={{ left: `${value}%` }}
             >
                 {selected && <div className="w-full h-full bg-primary rounded-full animate-ping" />}
@@ -29,9 +29,9 @@ export function Slider({ value, onChange }) {
                 onMouseUp={() => setSelected(false)}
                 value={value}
                 onChange={onChange}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                className="absolute w-full h-1 opacity-0 cursor-pointer"
+                style={{ top: '50%', transform: 'translateY(-50%)' }}
             />
         </div>
-
     );
 }
