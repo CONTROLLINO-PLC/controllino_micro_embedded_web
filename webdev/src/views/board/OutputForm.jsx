@@ -19,6 +19,11 @@ function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, 
             onChangeCurrentLimit(parseFloat(formattedValue));
         }
     };
+
+    useEffect(() => {
+        handleInputBlur();
+    }, []);
+    
     return (
         <div className="grid grid-cols-12 items-center gap-4">
             <div className="col-span-3">
