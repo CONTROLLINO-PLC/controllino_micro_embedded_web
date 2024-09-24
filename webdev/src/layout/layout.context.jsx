@@ -58,8 +58,8 @@ export function LayoutProvider ( props ) {
   const setSlider = async ( index, value ) => {
     fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
       method: 'POST',
-      body: { id: `sliders-${ index }`, value }
-    } ).then( i => i.json() ).then( ( () => {
+      body: JSON.stringify( { "analog": { "index": index, "value": value } } )
+    } ).then( ( () => {
       doHeartbit()
       setSliders( i => i.map( ( v, i ) => i === index ? value : v ) )
     } ) )
@@ -67,28 +67,27 @@ export function LayoutProvider ( props ) {
 
   const setCurrentLimit = async ( index, value ) => {
     if ( value >= 0.5 && value <= 3 ) {
+      setCurrentLimits( i => i.map( ( v, i ) => i === index ? value : v) )
+    }
+  }
+
+  const clickSetCurrentLimit = async ( index, value ) => {
+    if ( value >= 0.5 && value <= 3 ) {
       await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
         method: 'POST',
         body: JSON.stringify( { "limit": { "index": index, "value": value } } )
-      } ).then( j => j.json() ).then( () => {
-        doHeartbit()
-        setCurrentLimits( i => i.map( ( v, i ) => i === index ? value : v) )
-      } )
+      } ).then( () => { doHeartbit() } )
     }
   }
 
   const setThreshold = ( index, value ) => {
-    setThresholds( i => i.map( ( v, i ) => i === index ? value : v ) )
+    if ( value >= 0 && value <= 30 ) {
+      setThresholds( i => i.map( ( v, i ) => i === index ? value : v ) )
+    }
   }
 
   const setCheckbox = ( index, value ) => {
-    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
-      method: 'POST',
-      body: { id: `checkboxs-${ index }`, value }
-    } ).then( i => i.json() ).then( ( () => {
-      doHeartbit()
-      setCheckboxs( i => i.map( ( v, i ) => i === index ? value : v ) )
-    } ) )
+    setCheckboxs( i => i.map( ( v, i ) => i === index ? value : v ) )
   }
 
   const clickSetThreshold = ( index, value ) => {
@@ -103,22 +102,23 @@ export function LayoutProvider ( props ) {
   const setSwitch = ( index, value ) => {
     fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
       method: 'POST',
-      body: { id: `switchs-${ index }`, value }
-    } ).then( i => i.json() ).then( ( () => {
+      body: JSON.stringify( { "digital": { "index": index, "value": value } } )
+    } ).then( ( () => {
       doHeartbit()
       setSwithcs( i => i.map( ( v, i ) => i === index ? value : v ) )
       setSliders( i => i.map( ( v, i ) => i === index ? ( value ? 100 : 0 ) : v ) )
-      if ( checkboxs[ index ] ) return;
+      if ( checkboxs[ index ] || !value ) return;
       setTimeout( () => {
+        value = !value
         fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
           method: 'POST',
-          body: { id: `switchs-${ index }`, value }
-        } ).then( i => i.json() ).then( ( () => {
+          body: JSON.stringify( { "digital": { "index": index, "value": value } } )
+        } ).then( ( () => {
           doHeartbit()
-          setSwithcs( i => i.map( ( v, i ) => i === index ? false : v ) )
-          setSliders( i => i.map( ( v, i ) => i === index ? 0 : v ) )
+          setSwithcs( i => i.map( ( v, i ) => i === index ? value : v ) )
+          setSliders( i => i.map( ( v, i ) => i === index ? ( value ? 100 : 0 ) : v ) )
         } ) )
-      }, 500 )
+      }, 300 )
     } ) )
   }
 
@@ -207,6 +207,7 @@ export function LayoutProvider ( props ) {
       checkboxs, setCheckbox,
       switchs, setSwitch,
       currentLimits, setCurrentLimit,
+      clickSetCurrentLimit,
       inputs, setInputs,
       readings, setReadings,
       thresholds, setThreshold,

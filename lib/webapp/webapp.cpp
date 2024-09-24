@@ -130,6 +130,13 @@ static void handle_outputs_settings_set(struct mg_connection* c, struct mg_str* 
   mg_http_reply(c, 200, s_json_header, "ok\n");
 }
 
+extern void set_output(struct mg_str* body);
+
+static void handle_output_set(struct mg_connection* c, struct mg_str* body) {
+  set_output(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
 extern size_t print_inputs_settings(void (*out)(char, void*), void* ptr, va_list* ap);
 extern void set_inputs_settings(struct mg_str* body);
 
@@ -178,6 +185,11 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
       }
       else {
         handle_outputs_settings_get(c);
+      }
+    }
+    else if (mg_http_match_uri(hm, "/api/outputs")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_output_set(c, &(hm->body));
       }
     }
     else if (mg_http_match_uri(hm, "/api/inputs/settings")) {

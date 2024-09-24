@@ -194,79 +194,6 @@ int inputs[10] = {
 #define V_23_BITS   27.395F // 23 bits 0-27.395V
 #define V_12_BITS   25.798F // 12 bits 0-25.798V
 
-// Websocket handlers
-void handleRxWs(const char* data, size_t len) {
-  // Parse JSON
-  DynamicJsonDocument rxjson(256);
-  DeserializationError error = deserializeJson(rxjson, data, len);
-  if (error) {
-    Serial.printf("deserializeJson() failed: %s\r\n", error.c_str());
-    return;
-  }
-
-  // Parse data
-  String id = rxjson["id"];
-
-  // Outputs
-  for (int i = 0; i < 8; i++) {
-    if (id == "switchs-" + String(i)) {
-      int value = rxjson["value"];
-      digitalWrite(outputs[i], value ? HIGH : LOW);
-      break;
-    }
-    else if (id == "sliders-" + String(i)) {
-      int value = rxjson["value"];
-      analogWrite(outputs[i], map(value, 0, 100, 0, 255));
-      break;
-    }
-    else if (id == "current_limit-" + String(i)) {
-      float value = rxjson["value"];
-      setOutCurrentLim(outputs[i], (uint16_t)(value * 1000.0F));
-      break;
-    }
-  }
-
-  // Inputs
-  for (int i = 0; i < 10; i++) {
-    if (id == "digital_threshold-" + String(i)) {
-      float value = rxjson["value"];
-      if (i < 6) { // Analog inputs 0-5
-        setDigitalThreshold(inputs[i], (uint32_t)(value * RES_23_BITS / V_23_BITS));
-      }
-      else { // Digital inputs 6-9
-        setDigitalThreshold(inputs[i], (uint32_t)(value * RES_12_BITS / V_12_BITS));
-      }
-      break;
-    }
-  }
-
-  // Serial
-  if (id == "serial") {
-    serialTx = rxjson["value"].as<String>();
-    if (serialTerminator == LF) {
-      serialTx += "\n";
-    }
-    else if (serialTerminator == CR) {
-      serialTx += "\r";
-    }
-    else if (serialTerminator == CRLF) {
-      serialTx += "\r\n";
-    }
-  }
-  else if (id == "terminator") {
-    String value = rxjson["value"];
-    if (value == "LF") {
-      serialTerminator = LF;
-    }
-    else if (value == "CR") {
-      serialTerminator = CR;
-    }
-    else if (value == "CRLF") {
-      serialTerminator = CRLF;
-    }
-  }
-}
-
 // Websocket update
 static void ws_fn(void* param) {
   struct mg_mgr* _mgr = (struct mg_mgr*)param;
@@ -378,7 +305,7 @@ void set_inputs_settings(struct mg_str* body) {
 
 size_t print_outputs_settings(void (*out)(char, void*), void* ptr, va_list* ap) {
   return mg_xprintf(out, ptr,
-    "{%m:[%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f,%.02f]}\n",
+    "{%m:[%.04f,%.04f,%.04f,%.04f,%.04f,%.04f,%.04f,%.04f]}\n",
     MG_ESC("limits"),
     (float)getOutCurrentLim(outputs[0]) / 1000.0F,
     (float)getOutCurrentLim(outputs[1]) / 1000.0F,
@@ -399,7 +326,24 @@ void set_outputs_settings(struct mg_str* body) {
   else {
     return;
   }
+  Serial.println(value);
   setOutCurrentLim(outputs[(int)index], (uint16_t)(value * 1000.0F));
+}
+
+void set_output(struct mg_str* body) {
+  double index, value;
+  if (mg_json_get_num(*body, "$.analog.index", &index)) {
+    mg_json_get_num(*body, "$.analog.value", &value);
+    analogWrite(outputs[(int)index], map((int)value, 0, 100, 0, 255));
+  }
+  else if (mg_json_get_num(*body, "$.digital.index", &index)) {
+    bool val;
+    mg_json_get_bool(*body, "$.digital.value", &val);
+    digitalWrite(outputs[(int)index], val);
+  }
+  else {
+    return;
+  }
 }
 
 void setup() {
