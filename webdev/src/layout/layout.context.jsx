@@ -65,28 +65,16 @@ export function LayoutProvider ( props ) {
     } ) )
   }
 
-  // const setCurrentLimit = async ( index, value ) => {
-  //   if ( value >= 0.5 && value <= 3 ) {
-  //     let _currentLimits = currentLimits
-  //     _currentLimits[ index ] = value
-  //     await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
-  //       method: 'POST',
-  //       body: { id: `limits`, _currentLimits }
-  //     } ).then( j => j.json() ).then( () => {
-  //       doHeartbit()
-  //       setCurrentLimits( _currentLimits )
-  //     } )
-  //   }
-  // }
-
-  const setCurrentLimit = async (index, value) => {
-    if (value >= 0.5 && value <= 3) {
-      await fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
+  const setCurrentLimit = async ( index, value ) => {
+    if ( value >= 0.5 && value <= 3 ) {
+      await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
         method: 'POST',
-        body: { id: `limits-${index}`, value }
-      }).then(j => j.json())
+        body: JSON.stringify( { "limit": { "index": index, "value": value } } )
+      } ).then( j => j.json() ).then( () => {
+        doHeartbit()
+        setCurrentLimits( i => i.map( ( v, i ) => i === index ? value : v) )
+      } )
     }
-    setCurrentLimits(i => i.map((v, i) => i === index ? value : v))
   }
 
   const setThreshold = ( index, value ) => {
@@ -104,11 +92,12 @@ export function LayoutProvider ( props ) {
   }
 
   const clickSetThreshold = ( index, value ) => {
-    if ( value >= 0 && value <= 30 )
-      return fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs`, {
+    if ( value >= 0 && value <= 30 ) {
+      return fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings`, {
         method: 'POST',
-        body: { id: `digital_thershold-${ index }`, value }
-      } ).then( i => i.json() ).then( ( () => doHeartbit() ) )
+        body: JSON.stringify( { "threshold": { "index": index, "value": value } } )
+      } ).then( ( () => doHeartbit() ) )
+    }
   }
 
   const setSwitch = ( index, value ) => {
@@ -179,9 +168,9 @@ export function LayoutProvider ( props ) {
     fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings` )
       .then( i => i.json() ).then( ( data ) => {if ( data.limits ) setCurrentLimits( data.limits ) } )
 
-    // fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` ).then( i => i.json() ).then( ( data ) => {
-    //   if ( data.thresholds ) setThresholds( data.thresholds )
-    // } )
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` ).then( i => i.json() ).then( ( data ) => {
+      if ( data.thresholds ) setThresholds( data.thresholds )
+    } )
   }, [] );
 
   useEffect( () => {

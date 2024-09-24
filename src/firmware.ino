@@ -341,29 +341,44 @@ size_t print_network_settings(void (*out)(char, void*), void* ptr, va_list* ap) 
 }
 
 size_t print_inputs_settings(void (*out)(char, void*), void* ptr, va_list* ap) {
+  uint32_t tr0 = getDigitalThreshold(inputs[0]);
+  uint32_t tr1 = getDigitalThreshold(inputs[1]);
+  uint32_t tr2 = getDigitalThreshold(inputs[2]);
+  uint32_t tr3 = getDigitalThreshold(inputs[3]);
+  uint32_t tr4 = getDigitalThreshold(inputs[4]);
+  uint32_t tr5 = getDigitalThreshold(inputs[5]);
+  uint32_t tr6 = getDigitalThreshold(inputs[6]);
+  uint32_t tr7 = getDigitalThreshold(inputs[7]);
+  uint32_t tr8 = getDigitalThreshold(inputs[8]);
+  uint32_t tr9 = getDigitalThreshold(inputs[9]);
   return mg_xprintf(out, ptr,
-    "{%m:[%u,%u,%u,%u,%u,%u,%u,%u,%u,%u]}\n",
+    "{%m:[%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f]}\n",
     MG_ESC("thresholds"),
-    getDigitalThreshold(inputs[0]),
-    getDigitalThreshold(inputs[1]),
-    getDigitalThreshold(inputs[2]),
-    getDigitalThreshold(inputs[3]),
-    getDigitalThreshold(inputs[4]),
-    getDigitalThreshold(inputs[5]),
-    getDigitalThreshold(inputs[6]),
-    getDigitalThreshold(inputs[7]),
-    getDigitalThreshold(inputs[8]),
-    getDigitalThreshold(inputs[9]
-  ));
+    tr0 == ~0U ? V_23_BITS : (float)tr0 * V_23_BITS / RES_23_BITS,
+    tr1 == ~0U ? V_23_BITS : (float)tr1 * V_23_BITS / RES_23_BITS,
+    tr2 == ~0U ? V_23_BITS : (float)tr2 * V_23_BITS / RES_23_BITS,
+    tr3 == ~0U ? V_23_BITS : (float)tr3 * V_23_BITS / RES_23_BITS,
+    tr4 == ~0U ? V_23_BITS : (float)tr4 * V_23_BITS / RES_23_BITS,
+    tr5 == ~0U ? V_23_BITS : (float)tr5 * V_23_BITS / RES_23_BITS,
+    tr6 == ~0U ? V_12_BITS : (float)tr6 * V_12_BITS / RES_12_BITS,
+    tr7 == ~0U ? V_12_BITS : (float)tr7 * V_12_BITS / RES_12_BITS,
+    tr8 == ~0U ? V_12_BITS : (float)tr8 * V_12_BITS / RES_12_BITS,
+    tr9 == ~0U ? V_12_BITS : (float)tr9 * V_12_BITS / RES_12_BITS);
 }
 
 void set_inputs_settings(struct mg_str* body) {
-  struct mg_str val, key;
-  key = mg_str("$.thresholds");
-  for (size_t i = 0; i < 10; i++) {
-    mg_json_next(*body, i, &key, &val);
-    Serial.printf("Setting input %d current limit to %s V\n", i, val.ptr);
-    // setOutCurrentLim(outputs[i], (uint16_t)(atof(val.ptr)) * 1000);
+  double index, value;
+  if (mg_json_get_num(*body, "$.threshold.index", &index)) {
+    mg_json_get_num(*body, "$.threshold.value", &value);
+  }
+  else {
+    return;
+  }
+  if (index < 6) { // Analog inputs 0-5
+    setDigitalThreshold(inputs[(int)index], (uint32_t)(value * RES_23_BITS / V_23_BITS));
+  }
+  else { // Digital inputs 6-9
+    setDigitalThreshold(inputs[(int)index], (uint32_t)(value * RES_12_BITS / V_12_BITS));
   }
 }
 

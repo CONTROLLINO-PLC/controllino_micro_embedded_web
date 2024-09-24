@@ -9,7 +9,7 @@ function Row ( { addClassName, reading, threshold, onChangeThreshold, clickSetTh
                 <Input value={+reading} readOnly className='cursor-default' />
             </div>
             <div className="col-span-2">
-                <Input type='number' min={0} max={30} value={+threshold} onChange={e => onChangeThreshold(+e.target.value)} className='border outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:_textfield]' />
+                <Input type='number' min='0.0' max='30' step='0.00001' value={+threshold} onChange={e => onChangeThreshold(+e.target.value)} className='border outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:_textfield]' />
             </div>
             <Button onClick={clickSetThreshold} disabled={threshold < 0 || threshold > 30} className='px-auto'>SET</Button>
         </div>
