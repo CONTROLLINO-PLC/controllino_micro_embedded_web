@@ -276,14 +276,11 @@ static void ws_fn(void* param) {
 
     // Send data
     mg_ws_printf(c, WEBSOCKET_OP_TEXT,
-      "{%m:%.05f,%m:%.05f,%m:%.05f,%m:%c%s%c}",
+      "{%m:%.05f,%m:%.05f,%m:%.05f,%m:%c%s%c,%m:[%u,%u,%u,%u,%u,%u,%u,%u]}",
       MG_ESC("vsupply"), readVoltageSuply() / 1000.0F,
       MG_ESC("tmcu"), analogReadTemp(3.3F),
       MG_ESC("tsens"), readBoardTemperature(),
-      MG_ESC("rx"), '"', serialRx.c_str(), '"'
-    );
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT,
-      "{%m:[%u,%u,%u,%u,%u,%u,%u,%u]}",
+      MG_ESC("rx"), '"', serialRx.c_str(), '"',
       MG_ESC("do"),
       digitalRead(outputs[0]),
       digitalRead(outputs[1]),
@@ -295,7 +292,7 @@ static void ws_fn(void* param) {
       digitalRead(outputs[7])
     );
     mg_ws_printf(c, WEBSOCKET_OP_TEXT,
-      "{%m:[%u,%u,%u,%u,%u,%u,%u,%u,%u,%u]}",
+      "{%m:[%u,%u,%u,%u,%u,%u,%u,%u,%u,%u],%m:[%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f]}",
       MG_ESC("di"),
       digitalRead(inputs[0]),
       digitalRead(inputs[1]),
@@ -306,10 +303,7 @@ static void ws_fn(void* param) {
       digitalRead(inputs[6]),
       digitalRead(inputs[7]),
       digitalRead(inputs[8]),
-      digitalRead(inputs[9])
-    );
-    mg_ws_printf(c, WEBSOCKET_OP_TEXT,
-      "{%m:[%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f,%.05f]}",
+      digitalRead(inputs[9]),
       MG_ESC("ai"),
       (float)analogRead(inputs[0])* V_23_BITS / RES_23_BITS,
       (float)analogRead(inputs[1])* V_23_BITS / RES_23_BITS,
@@ -398,13 +392,14 @@ size_t print_outputs_settings(void (*out)(char, void*), void* ptr, va_list* ap) 
 }
 
 void set_outputs_settings(struct mg_str* body) {
-  struct mg_str val, key;
-  key = mg_str("$.limits");
-  for (size_t i = 0; i < 8; i++) {
-    mg_json_next(*body, i, &key, &val);
-    Serial.printf("Setting output %d current limit to %s A %u mA\n", i, val.ptr, (uint16_t)(atof(val.ptr)) * 1000);
-    // setOutCurrentLim(outputs[i], (uint16_t)(atof(val.ptr)) * 1000);
+  double index, value;
+  if (mg_json_get_num(*body, "$.limit.index", &index)) {
+    mg_json_get_num(*body, "$.limit.value", &value);
   }
+  else {
+    return;
+  }
+  setOutCurrentLim(outputs[(int)index], (uint16_t)(value * 1000.0F));
 }
 
 void setup() {
