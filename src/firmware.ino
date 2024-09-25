@@ -355,8 +355,8 @@ void terminal_tx(struct mg_str* body) {
 void setup() {
   // Initialize serial port
   Serial.begin(115200);
-  while (!Serial);
-  delay(2000);
+  // while (!Serial);
+  // delay(2000);
 
   // Setup SPI
   pinMode(PIN_SPI_SS_ETHERNET_LIB, OUTPUT);
