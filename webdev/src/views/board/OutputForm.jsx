@@ -70,7 +70,7 @@ export function OutputForm() {
                         currentLimit={currentLimits[index]}
                         onChangeCurrentLimit={v => setCurrentLimit(index, v)}
                         clickSetCurrentLimit={() => clickSetCurrentLimit(index, currentLimits[index])}
-                        slider={i}
+                        slider={sliders[index]}
                         onChangeSlider={(e) => setSlider(index, +e.target.value)}
                         checkbox={checkboxs[index]}
                         onChangeCheckbox={(v) => setCheckbox(index, v)}

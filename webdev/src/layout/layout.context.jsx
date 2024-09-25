@@ -56,7 +56,7 @@ export function LayoutProvider ( props ) {
   const doHeartbit = () => {setHeartbit( !heartbit )}
 
   const setSlider = async ( index, value ) => {
-    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
       method: 'POST',
       body: JSON.stringify( { "analog": { "index": index, "value": value } } )
     } ).then( ( () => {
@@ -100,7 +100,7 @@ export function LayoutProvider ( props ) {
   }
 
   const setSwitch = ( index, value ) => {
-    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
       method: 'POST',
       body: JSON.stringify( { "digital": { "index": index, "value": value } } )
     } ).then( ( () => {
@@ -110,7 +110,7 @@ export function LayoutProvider ( props ) {
       if ( checkboxs[ index ] || !value ) return;
       setTimeout( () => {
         value = !value
-        fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
+        fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
           method: 'POST',
           body: JSON.stringify( { "digital": { "index": index, "value": value } } )
         } ).then( ( () => {
@@ -166,7 +166,7 @@ export function LayoutProvider ( props ) {
     };
     
     fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings` )
-      .then( i => i.json() ).then( ( data ) => {if ( data.limits ) setCurrentLimits( data.limits ) } )
+      .then( i => i.json() ).then( ( data ) => {if ( data.limits ) setCurrentLimits( data.limits )} )
 
     fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` ).then( i => i.json() ).then( ( data ) => {
       if ( data.thresholds ) setThresholds( data.thresholds )

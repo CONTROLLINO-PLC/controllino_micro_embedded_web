@@ -89,27 +89,27 @@ const serverREST = http.createServer((req, res) => {
         res.end(JSON.stringify({status: 'ok'}));
     }
     // new
-    else if(req.method === 'GET' && parsedUrl.pathname === '/api/outputs') {
+    else if(req.method === 'GET' && parsedUrl.pathname === '/api/outputs/settings') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
             sliders: [50,2,3,4,5,56,17,8],
             checkboxs: [false, false, true, true, false, false, true, true],
-            currentLimits: [0.5,2,3,2,1,0.56,1.7,2.8],
+            limits: [0.5,2,3,2,1,0.56,1.7,2.8],
             switchs: [false, false, true, true, false, false, true, true],
         }));
     }
-    else if(req.method === 'GET' && parsedUrl.pathname === '/api/inputs') {
+    else if(req.method === 'GET' && parsedUrl.pathname === '/api/inputs/settings') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
             inputs: [[0,0],[25,25],[0,25],[0,25],[30,30],[20,20],[10,10],[18,18]],
         }));
     }
-    else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs'){
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
     
     }
-    else if(req.method === 'POST' && parsedUrl.pathname === '/api/inputs'){
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/inputs/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
     }
