@@ -55,6 +55,7 @@ function Current(props) {
                         if (chunk.length > 0) return; // More chunks to send
                         setStatusUploading(x => x + ". Done !!!");
                         finish(ok); // All chunks sent
+                        props.onUploaded();
                     });
             };
             sendChunk(0);
@@ -154,6 +155,7 @@ export function FirmwareView() {
 
     const onstatus = () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/firmware/status`)
         .then(r => r.json())
+        .then(console.log('okok'))
         .then(r => {
             r.forEach((item, index) => {
                 if (index === 0) {
@@ -214,6 +216,7 @@ export function FirmwareView() {
                     flached={flached}
                     oncommit={() => oncommit()}
                     reboot={() => onreboot()}
+                    onUploaded={onstatus}
                 />
             </div>
 
