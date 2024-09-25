@@ -3,7 +3,8 @@ import { Button, Input, Switch, Slider, Checkbox } from "../../components";
 import { LayoutContext } from "../../layout/layout.context";
 
 function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, onChangeSwitch, currentLimit, onChangeCurrentLimit, clickSetCurrentLimit }) {
-    const [localCurrentLimit, setLocalCurrentLimit] = useState(currentLimit);
+    const [localCurrentLimit, setLocalCurrentLimit] = useState(currentLimit.toFixed(3));
+
     const handleInputChange = (e) => {
         const value = e.target.value;
         setLocalCurrentLimit(value);
@@ -21,9 +22,9 @@ function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, 
     };
 
     useEffect(() => {
-        handleInputBlur();
-    }, []);
-    
+        setLocalCurrentLimit(currentLimit.toFixed(3));
+    }, [currentLimit]);
+
     return (
         <div className="grid grid-cols-12 items-center gap-4">
             <div className="col-span-3">
@@ -49,7 +50,7 @@ function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, 
 }
 
 export function OutputForm() {
-    const { sliders, setSlider, checkboxs, setCheckbox, switchs, setSwitch, currentLimits, setCurrentLimit, clickSetCurrentLimit } = useContext(LayoutContext)
+    const { sliders, setSlider, checkboxs, setCheckbox, switchs, setSwitch, currentLimits, setCurrentLimit, clickSetCurrentLimit } = useContext(LayoutContext);
 
     return (
         <div className="px-4 py-2 flex flex-col gap-1 justify-between h-full">
@@ -64,7 +65,7 @@ export function OutputForm() {
             </div>
 
             {
-                sliders.map((i, index) => (
+                sliders.map((slider, index) => (
                     <Row
                         key={index}
                         currentLimit={currentLimits[index]}

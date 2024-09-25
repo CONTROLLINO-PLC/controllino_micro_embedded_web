@@ -165,9 +165,14 @@ export function LayoutProvider ( props ) {
       }, 5000 );
     };
     
-    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings` )
-      .then( i => i.json() ).then( ( data ) => {if ( data.limits ) setCurrentLimits( data.limits )} )
-
+    fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs/settings`)
+    .then(i => i.json())
+    .then((data) => {
+      if (data.limits) setCurrentLimits(data.limits);
+      if (data.sliders) setSliders(data.sliders);
+      if (data.checkboxs) setCheckboxs(data.checkboxs);
+      if (data.switchs) setSwithcs(data.switchs);
+    });
     fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` ).then( i => i.json() ).then( ( data ) => {
       if ( data.thresholds ) setThresholds( data.thresholds )
     } )
