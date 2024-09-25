@@ -149,6 +149,20 @@ static void handle_inputs_settings_set(struct mg_connection* c, struct mg_str* b
   mg_http_reply(c, 200, s_json_header, "ok\n");
 }
 
+extern void terminal_tx(struct mg_str* body);
+
+static void handle_terminal_tx(struct mg_connection* c, struct mg_str* body) {
+  terminal_tx(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
+extern void set_serial_settings(struct mg_str* body);
+
+static void handle_serial_settings_set(struct mg_connection* c, struct mg_str* body) {
+  set_serial_settings(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
 // HTTP request handler function
 static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
   if (ev == MG_EV_HTTP_MSG) {
@@ -198,6 +212,16 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
       }
       else {
         handle_inputs_settings_get(c);
+      }
+    }
+    else if (mg_http_match_uri(hm, "/api/serial/settings")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_serial_settings_set(c, &(hm->body));
+      }
+    }
+    else if (mg_http_match_uri(hm, "/api/terminal")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_terminal_tx(c, &(hm->body));
       }
     }
     else {

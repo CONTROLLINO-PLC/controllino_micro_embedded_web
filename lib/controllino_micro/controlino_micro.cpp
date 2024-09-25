@@ -122,7 +122,7 @@ ControllinoRp2040Pin* getControllinoRp2040Pin(int pin)
 }
  
 /* Measure power suply voltage in millivolts */
-#define POWER_SUPLY_CONVERSION_RATIO (24000.0F / 7362700.0F) /* 24000 mV(24 V) for 7362700 on the ADC */
+#define POWER_SUPLY_CONVERSION_RATIO (27395.0F / 8388607.0F) /* 27395 mV for 8388607 max on the ADC */
 int readVoltageSuply(void)
 {
     // Power suply monitoring is connected to ADC channel 6

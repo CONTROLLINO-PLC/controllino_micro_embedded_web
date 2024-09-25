@@ -12,15 +12,13 @@ export const LayoutContext = createContext( {
   notification: true, setNotification: () => { },
   alerts: {
     tempAlert: '', setTempAlert: () => { },
-    modbusAlertCoil1: '', setModbusAlertCoil1: () => { },
-    modbusAlertCoil2: '', setModbusAlertCoil2: () => { },
-    modbusAlertRate: '', setModbusAlertRate: () => { },
     tempFormAlert: '', setTempFormAlert: () => { },
     currentLimitAlert: '', setCurrentLimitAlert: () => { },
     thresholdAlert: '', setThresholdAlert: () => { }
   },
   sliders: [ 0, 0, 0, 0, 0, 0, 0, 0 ], setSlider: () => { },
   serials: [], setSerials: () => { }, setSerial: () => { },
+  serialTerminator: 0, setSerialTerminator: () => { },
   checkboxs: [ false, false, false, false, false, false, false, false ], setCheckbox: () => { },
   switchs: [ false, false, false, false, false, false, false, false ], setSwitch: () => { },
   currentLimits: [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ], setCurrentLimit: () => { },
@@ -37,6 +35,7 @@ export function LayoutProvider ( props ) {
   const [ tmcu, setTmcu ] = useState( 0.0 )
   const [ tsens, setTsens ] = useState( 0.0 )
   const [ serials, setSerials ] = useState( [] )
+  const [ serialTerminator, setSerialTerminator ] = useState( 0 )
   const [ sliders, setSliders ] = useState( [ 0, 0, 0, 0, 0, 0, 0, 0 ] )
   const [ currentLimits, setCurrentLimits ] = useState( [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] )
   const [ inputs, setInputs ] = useState( [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] )
@@ -46,9 +45,6 @@ export function LayoutProvider ( props ) {
   const [ checkboxs, setCheckboxs ] = useState( [ false, false, false, false, false, false, false, false ] )
   const [ notification, setNotification ] = useState( false )
   const [ tempAlert, setTempAlert ] = useState( '' )
-  const [ modbusAlertCoil1, setModbusAlertCoil1 ] = useState( '' )
-  const [ modbusAlertCoil2, setModbusAlertCoil2 ] = useState( '' )
-  const [ modbusAlertRate, setModbusAlertRate ] = useState( '' )
   const [ tempFormAlert, setTempFormAlert ] = useState( '' )
   const [ currentLimitAlert, setCurrentLimitAlert ] = useState( '' )
   const [ thresholdAlert, setThresholdAlert ] = useState( '' )
@@ -126,10 +122,20 @@ export function LayoutProvider ( props ) {
     // TODO: hacer la peticion post con los parametros adecuados
     await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/terminal`, {
       method: 'POST',
-      body: { terminal: message }
-    } ).then( i => i.json() ).then( ( () => {
+      body: JSON.stringify( { 'tx': message } )
+    } ).then( ( () => {
       doHeartbit()
       setSerials( i => ( [ ...i, `send<:::>${ message }` ] ) )
+    } ) )
+  }
+
+  const selectSerialTerminator = ( value ) => {
+    return fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/serial/settings`, {
+      method: 'POST',
+      body: JSON.stringify( { "terminator": value } )
+    } ).then( ( () => {
+      doHeartbit()
+      setSerialTerminator( value )
     } ) )
   }
 
@@ -141,7 +147,9 @@ export function LayoutProvider ( props ) {
     const parsedData = JSON.parse( evt.data );
 
     if ( parsedData.rx ) {
-      setSerials( i => ( [ ...i, `recive<:::>${ parsedData.rx }` ] ) )
+      if ( parsedData.rx.length ) {
+        setSerials( i => ( [ ...i, `recive<:::>${ parsedData.rx }` ] ) )
+      }
     }
 
     if ( parsedData.tmcu ) setTmcu( parsedData.tmcu )
@@ -198,14 +206,12 @@ export function LayoutProvider ( props ) {
       notification, setNotification,
       alerts: {
         tempAlert, setTempAlert,
-        modbusAlertCoil1, setModbusAlertCoil1,
-        modbusAlertCoil2, setModbusAlertCoil2,
-        modbusAlertRate, setModbusAlertRate,
         tempFormAlert, setTempFormAlert,
         currentLimitAlert, setCurrentLimitAlert,
         thresholdAlert, setThresholdAlert,
       },
       serials, setSerials, setSerial,
+      serialTerminator, selectSerialTerminator,
       sliders, setSlider,
       checkboxs, setCheckbox,
       switchs, setSwitch,

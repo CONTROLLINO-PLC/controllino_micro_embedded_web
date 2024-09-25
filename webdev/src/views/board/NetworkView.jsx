@@ -37,11 +37,11 @@ export function NetworkView() {
 
     const reData = async () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/network/settings`)
         .then(r => r.json())
-        .then(r => {
+        .then( r => {
             const ipValues = r.ip.split(".");
             const subnetValues = r.mask.split(".");
             const gatewayValues = r.gw.split(".");
-            const macValues = r.mac.split(":");
+            const macValues = r.mac.split( ":" );
             for (let i = 0; i < 4; i++) {
                 setIp1(ipValues[0])
                 setIp2(ipValues[1])
@@ -52,9 +52,9 @@ export function NetworkView() {
                 setGw3(gatewayValues[2])
                 setGw4(gatewayValues[3])
                 setSn1(subnetValues[0])
-                setSn1(subnetValues[1])
-                setSn1(subnetValues[2])
-                setSn1(subnetValues[3])
+                setSn2(subnetValues[1])
+                setSn3(subnetValues[2])
+                setSn4(subnetValues[3])
             }
             for (let i = 0; i < 6; i++) {
                 setMac1(macValues[0])

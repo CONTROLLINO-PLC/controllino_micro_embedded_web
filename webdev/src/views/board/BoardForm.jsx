@@ -60,7 +60,7 @@ export function BoardForm() {
                     inputs.map((i, index) => (
                         <div  key={index} className="w-24 h-[10.8%]">
                             <Item className="h-[248%]"
-                                fill={ `${ i ? "green" : "grey" }` }
+                                fill={ `${ i ? "#4DFF10" : "grey" }` }
                                 transform={'rotate(180, 12, 12)'}
                             />
                         </div>
