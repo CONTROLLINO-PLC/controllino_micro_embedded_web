@@ -3,7 +3,7 @@ import { Button, Input, Switch, Slider, Checkbox } from "../../components";
 import { LayoutContext } from "../../layout/layout.context";
 
 function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, onChangeSwitch, currentLimit, onChangeCurrentLimit, clickSetCurrentLimit }) {
-    const [localCurrentLimit, setLocalCurrentLimit] = useState(currentLimit.toFixed(3));
+    const [localCurrentLimit, setLocalCurrentLimit] = useState(currentLimit);
 
     const handleInputChange = (e) => {
         const value = e.target.value;
@@ -22,7 +22,7 @@ function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, 
     };
 
     useEffect( () => {
-        setLocalCurrentLimit( currentLimit.toFixed( 3 ) )
+        setLocalCurrentLimit( currentLimit )
     }, [currentLimit]);
 
     return (
