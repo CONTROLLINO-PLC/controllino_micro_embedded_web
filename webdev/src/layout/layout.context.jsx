@@ -184,7 +184,10 @@ export function LayoutProvider ( props ) {
     });
     fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` )
       .then( i => i.json() ).then( ( data ) => {
-        if ( data.thresholds ) setThresholds( data.thresholds )
+        if ( data.thresholds ){
+          const formattedThresholds = data.thresholds.map(thresholds => parseFloat(thresholds).toFixed(5));
+          setThresholds(formattedThresholds);
+        }
     } )
   }, [] );
 

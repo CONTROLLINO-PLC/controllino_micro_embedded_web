@@ -3,7 +3,7 @@ import { Button, Input } from "../../components";
 import { LayoutContext } from "../../layout/layout.context";
 
 function Row({ addClassName, reading, threshold, onChangeThreshold, clickSetThreshold }) {
-    const [localThreshold, setLocalThreshold] = useState(threshold.toFixed(5));
+    const [localThreshold, setLocalThreshold] = useState(threshold);
 
     const handleInputChange = (e) => {
         const value = e.target.value;
@@ -22,7 +22,7 @@ function Row({ addClassName, reading, threshold, onChangeThreshold, clickSetThre
     };
 
     useEffect(() => {
-        setLocalThreshold(threshold.toFixed(5));
+        setLocalThreshold(threshold);
     }, [threshold]);
 
     return (
