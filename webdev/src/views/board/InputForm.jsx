@@ -4,6 +4,7 @@ import { LayoutContext } from "../../layout/layout.context";
 
 function Row({ addClassName, reading, threshold, onChangeThreshold, clickSetThreshold }) {
     const [localThreshold, setLocalThreshold] = useState(threshold.toFixed(5));
+    const [dataLoaded, setDataLoaded] = useState(0);
 
     const handleInputChange = (e) => {
         const value = e.target.value;
@@ -22,13 +23,16 @@ function Row({ addClassName, reading, threshold, onChangeThreshold, clickSetThre
     };
 
     useEffect(() => {
-        setLocalThreshold(threshold.toFixed(5));
-    }, [threshold]);
+        if (dataLoaded < 10) {
+            setDataLoaded(dataLoaded + 1);
+            setLocalThreshold(threshold.toFixed(5));
+        }
+    }, [threshold, dataLoaded]);
 
     return (
         <div className={"grid grid-cols-5 items-center gap-4 " + addClassName}>
             <div className="col-span-2">
-                <Input value={+reading} readOnly className='cursor-default' />
+                <Input value={reading.toFixed(5)} readOnly className='cursor-default' />
             </div>
             <div className="col-span-2">
                 <Input

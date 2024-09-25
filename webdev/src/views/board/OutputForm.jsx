@@ -4,6 +4,7 @@ import { LayoutContext } from "../../layout/layout.context";
 
 function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, onChangeSwitch, currentLimit, onChangeCurrentLimit, clickSetCurrentLimit }) {
     const [localCurrentLimit, setLocalCurrentLimit] = useState(currentLimit.toFixed(3));
+    const [dataLoaded, setDataLoaded] = useState(0);
 
     const handleInputChange = (e) => {
         const value = e.target.value;
@@ -22,8 +23,11 @@ function Row({ slider, onChangeSlider, checkbox, onChangeCheckbox, switchValue, 
     };
 
     useEffect(() => {
-        setLocalCurrentLimit(currentLimit.toFixed(3));
-    }, [currentLimit]);
+        if (dataLoaded < 10) {
+            setDataLoaded(dataLoaded + 1);
+            setLocalCurrentLimit(currentLimit.toFixed(3));
+        }
+    }, [currentLimit, dataLoaded]);
 
     return (
         <div className="grid grid-cols-12 items-center gap-4">
@@ -71,7 +75,7 @@ export function OutputForm() {
                         currentLimit={currentLimits[index]}
                         onChangeCurrentLimit={v => setCurrentLimit(index, v)}
                         clickSetCurrentLimit={() => clickSetCurrentLimit(index, currentLimits[index])}
-                        slider={sliders[index]}
+                        slider={slider}
                         onChangeSlider={(e) => setSlider(index, +e.target.value)}
                         checkbox={checkboxs[index]}
                         onChangeCheckbox={(v) => setCheckbox(index, v)}
