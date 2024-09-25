@@ -326,7 +326,6 @@ void set_outputs_settings(struct mg_str* body) {
   else {
     return;
   }
-  Serial.println(value);
   setOutCurrentLim(outputs[(int)index], (uint16_t)(value * 1000.0F));
 }
 

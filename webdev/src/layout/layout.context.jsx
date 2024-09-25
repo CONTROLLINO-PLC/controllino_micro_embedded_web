@@ -56,7 +56,7 @@ export function LayoutProvider ( props ) {
   const doHeartbit = () => {setHeartbit( !heartbit )}
 
   const setSlider = async ( index, value ) => {
-    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
       method: 'POST',
       body: JSON.stringify( { "analog": { "index": index, "value": value } } )
     } ).then( ( () => {
@@ -100,7 +100,7 @@ export function LayoutProvider ( props ) {
   }
 
   const setSwitch = ( index, value ) => {
-    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
       method: 'POST',
       body: JSON.stringify( { "digital": { "index": index, "value": value } } )
     } ).then( ( () => {
@@ -110,7 +110,7 @@ export function LayoutProvider ( props ) {
       if ( checkboxs[ index ] || !value ) return;
       setTimeout( () => {
         value = !value
-        fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
+        fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
           method: 'POST',
           body: JSON.stringify( { "digital": { "index": index, "value": value } } )
         } ).then( ( () => {
@@ -147,8 +147,8 @@ export function LayoutProvider ( props ) {
     if ( parsedData.tmcu ) setTmcu( parsedData.tmcu )
     if ( parsedData.vsupply ) setVsupply( parsedData.vsupply )
     if ( parsedData.tsens ) setTsens( parsedData.tsens )
-    // if ( parsedData.di ) setInputs( parsedData.di )
-    // if ( parsedData.ai ) setReadings( parsedData.ai )
+    if ( parsedData.di ) setInputs( parsedData.di )
+    if ( parsedData.ai ) setReadings( parsedData.ai )
   }, [ heartbit ] );
 
   const handleSetLogin = ( value ) => {
@@ -167,15 +167,12 @@ export function LayoutProvider ( props ) {
     
     fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs/settings`)
     .then(i => i.json())
-    .then((data) => {
-      if (data.limits) setCurrentLimits(data.limits);
-      if (data.sliders) setSliders(data.sliders);
-      if (data.checkboxs) setCheckboxs(data.checkboxs);
-      if (data.switchs) setSwithcs(data.switchs);
+      .then( ( data ) => {
+        if ( data.limits ) setCurrentLimits( data.limits )
     });
-    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` ).then( i => i.json() ).then( ( data ) => {
-      if ( data.readings ) setReadings( data.readings );
-      if ( data.thresholds ) setThresholds( data.thresholds );
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` )
+      .then( i => i.json() ).then( ( data ) => {
+        if ( data.thresholds ) setThresholds( data.thresholds )
     } )
   }, [] );
 
