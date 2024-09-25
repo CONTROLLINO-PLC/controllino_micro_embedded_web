@@ -155,7 +155,6 @@ export function FirmwareView() {
 
     const onstatus = () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/firmware/status`)
         .then(r => r.json())
-        .then(console.log('okok'))
         .then(r => {
             r.forEach((item, index) => {
                 if (index === 0) {
