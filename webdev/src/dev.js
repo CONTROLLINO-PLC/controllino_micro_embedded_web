@@ -108,7 +108,10 @@ const serverREST = http.createServer((req, res) => {
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
-    
+    }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({status: 'ok'}));
     }
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/inputs/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
