@@ -101,7 +101,8 @@ const serverREST = http.createServer((req, res) => {
     else if(req.method === 'GET' && parsedUrl.pathname === '/api/inputs/settings') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
-            inputs: [[0,0],[25,25],[0,25],[0,25],[30,30],[20,20],[10,10],[18,18]],
+            readings: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            thresholds: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
         }));
     }
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs/settings'){

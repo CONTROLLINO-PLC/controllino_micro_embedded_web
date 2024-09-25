@@ -147,8 +147,8 @@ export function LayoutProvider ( props ) {
     if ( parsedData.tmcu ) setTmcu( parsedData.tmcu )
     if ( parsedData.vsupply ) setVsupply( parsedData.vsupply )
     if ( parsedData.tsens ) setTsens( parsedData.tsens )
-    if ( parsedData.di ) setInputs( parsedData.di )
-    if ( parsedData.ai ) setReadings( parsedData.ai )
+    // if ( parsedData.di ) setInputs( parsedData.di )
+    // if ( parsedData.ai ) setReadings( parsedData.ai )
   }, [ heartbit ] );
 
   const handleSetLogin = ( value ) => {
@@ -174,7 +174,8 @@ export function LayoutProvider ( props ) {
       if (data.switchs) setSwithcs(data.switchs);
     });
     fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` ).then( i => i.json() ).then( ( data ) => {
-      if ( data.thresholds ) setThresholds( data.thresholds )
+      if ( data.readings ) setReadings( data.readings );
+      if ( data.thresholds ) setThresholds( data.thresholds );
     } )
   }, [] );
 
