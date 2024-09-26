@@ -76,19 +76,6 @@ const serverREST = http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
     }
-    else if(req.method === 'POST' && parsedUrl.pathname === '/api/modbus/settings'){
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end('ok');
-    }
-    else if(req.method === 'POST' && parsedUrl.pathname === '/api/temperature/settings'){
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end('ok');
-    }
-    else if(req.method === 'POST' && parsedUrl.pathname === '/api/firmware/upload'){
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({status: 'ok'}));
-    }
-    // new
     else if(req.method === 'GET' && parsedUrl.pathname === '/api/outputs/settings') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
@@ -105,6 +92,18 @@ const serverREST = http.createServer((req, res) => {
             thresholds: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
         }));
     }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/modbus/settings'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('ok');
+    }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/temperature/settings'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('ok');
+    }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/firmware/upload'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({status: 'ok'}));
+    }
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
@@ -118,6 +117,10 @@ const serverREST = http.createServer((req, res) => {
         res.end(JSON.stringify({status: 'ok'}));
     }
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/terminal'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify('recived from device'));
+    }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/terminal/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify('recived from device'));
     }
@@ -148,7 +151,7 @@ ws.createServer(function (conn) {
     setInterval(() => {
         x = generate(-50.012, 180.156);
         y = x + 13.031;
-        data = {"tmcu": x,"vsupply": y,"tsens": x, 'terminal': `${terminal} : ${Math.random()}`};
+        data = {"tmcu": x,"vsupply": y,"tsens": x, 'rx': `${terminal} : ${Math.random()}`};
             try {
                 conn.send(JSON.stringify(data));
             } catch (error) {

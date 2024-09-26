@@ -176,7 +176,6 @@ export function LayoutProvider ( props ) {
     fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs/settings`)
     .then(i => i.json())
       .then( ( data ) => {
-        // if ( data.limits ) setCurrentLimits( data.limits )
         if (data.limits) {
           const formattedLimits = data.limits.map(limit => parseFloat(limit).toFixed(3));
           setCurrentLimits(formattedLimits);
