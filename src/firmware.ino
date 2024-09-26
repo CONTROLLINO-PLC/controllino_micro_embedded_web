@@ -354,8 +354,8 @@ void terminal_tx(struct mg_str* body) {
 void setup() {
   // Initialize serial port
   Serial.begin(115200);
-  // while (!Serial);
-  // delay(2000);
+  while (!Serial);
+  delay(2000);
 
   // Setup SPI
   pinMode(PIN_SPI_SS_ETHERNET_LIB, OUTPUT);
@@ -383,6 +383,19 @@ void setup() {
 #ifdef CONTROLLINO_MICRO_CAN
   microCANInit();
 #endif
+
+  // Get unique board id and set it as MAC address
+  pico_unique_board_id_t board_id;
+  pico_get_unique_board_id(&board_id);
+  mif.mac[0] = 0x02;
+  mif.mac[1] = board_id.id[3];
+  mif.mac[2] = board_id.id[4];
+  mif.mac[3] = board_id.id[5];
+  mif.mac[4] = board_id.id[6];
+  mif.mac[5] = board_id.id[7];
+
+  // Set logging function to a serial print
+  mg_log_set_fn([](char ch, void*) { Serial.print(ch); }, NULL);
 
   // Initialize app server
   webAppInit(&mgr, &mif);

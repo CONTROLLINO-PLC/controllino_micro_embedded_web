@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <SPI.h>
+#
 #include "webapp.h"
 
 /**
@@ -14,9 +14,6 @@
  *
  * \author Pedro Marquez @pmmarquez, CONTROLLINO Firmware Team
  */
-
-/* Unique board id */
-uint8_t* id;
 
 // Time management
 static uint64_t s_boot_timestamp = 0;  // Updated by SNTP
@@ -263,19 +260,7 @@ void webAppInit(struct mg_mgr* mgr, mg_tcpip_if* mif)
   // Bootstrap OTA
   mg_ota_boot();
 
-  // Get unique board id and set MAC address
-  pico_unique_board_id_t board_id;
-  pico_get_unique_board_id(&board_id);
-  id = board_id.id;
-  mif->mac[0] = 0x02;
-  mif->mac[1] = id[3];
-  mif->mac[2] = id[4];
-  mif->mac[3] = id[5];
-  mif->mac[4] = id[6];
-  mif->mac[5] = id[7];
-
-  // Set logging function to a serial print
-  mg_log_set_fn([](char ch, void*) { Serial.print(ch); }, NULL);
+  // Initialize Mongoose
   mg_mgr_init(mgr);
 
   // Start TCP/IP stack
