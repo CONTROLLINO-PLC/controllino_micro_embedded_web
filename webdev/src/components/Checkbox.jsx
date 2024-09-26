@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { SVG } from './SVG';
 
 export function Checkbox({ checked, setChecked }) {
@@ -19,9 +20,14 @@ export function Checkbox({ checked, setChecked }) {
                     }`}
             >
                 {checked && (
-                    <SVG select={'checkbox'} />
+                    <SVG select='checkbox' />
                 )}
             </div>
         </label>
     );
+}
+
+Checkbox.propTypes = {
+    checked: PropTypes.bool.isRequired,
+    setChecked: PropTypes.func.isRequired,
 };

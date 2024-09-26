@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Input } from "../../components";
 
-function NetworkFormItem({ name, value }) {
+function NetworkFormItem({ value }) {
     return (
         <div className="flex flex-col items-center gap-2 my-4 mx-2">
             {value}
@@ -35,13 +35,13 @@ export function NetworkView() {
         reData();
     }, []);
 
-    const reData = async ev => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/network/settings`)
+    const reData = async () => fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/network/settings`)
         .then(r => r.json())
-        .then(r => {
+        .then( r => {
             const ipValues = r.ip.split(".");
             const subnetValues = r.mask.split(".");
             const gatewayValues = r.gw.split(".");
-            const macValues = r.mac.split(":");
+            const macValues = r.mac.split( ":" );
             for (let i = 0; i < 4; i++) {
                 setIp1(ipValues[0])
                 setIp2(ipValues[1])
@@ -52,9 +52,9 @@ export function NetworkView() {
                 setGw3(gatewayValues[2])
                 setGw4(gatewayValues[3])
                 setSn1(subnetValues[0])
-                setSn1(subnetValues[1])
-                setSn1(subnetValues[2])
-                setSn1(subnetValues[3])
+                setSn2(subnetValues[1])
+                setSn3(subnetValues[2])
+                setSn4(subnetValues[3])
             }
             for (let i = 0; i < 6; i++) {
                 setMac1(macValues[0])
@@ -70,36 +70,36 @@ export function NetworkView() {
             <div className="flex flex-col bg-[#3c3d3c] text-slate-300 max-w-xl rounded border-2 border-gray-500">
                 <div className="grid grid-cols-5 -mb-4">
                     <div className="flex mx-2 items-center font-bold uppercase"> ip address: </div>
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={ip1} onChange={(e) => setIp1(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={ip2} onChange={(e) => setIp2(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={ip3} onChange={(e) => setIp3(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={ip4} onChange={(e) => setIp4(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={ip1} onChange={(e) => setIp1(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={ip2} onChange={(e) => setIp2(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={ip3} onChange={(e) => setIp3(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={ip4} onChange={(e) => setIp4(e.target.value)} />} />
                 </div>
                 <div className="grid grid-cols-5 -mb-4">
                     <div className="flex mx-2 items-center font-bold uppercase"> subnet:</div>
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={sn1} onChange={(e) => setSn1(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={sn2} onChange={(e) => setSn2(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={sn3} onChange={(e) => setSn3(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={sn4} onChange={(e) => setSn4(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={sn1} onChange={(e) => setSn1(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={sn2} onChange={(e) => setSn2(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={sn3} onChange={(e) => setSn3(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={sn4} onChange={(e) => setSn4(e.target.value)} />} />
                 </div>
                 <div className="grid grid-cols-5 -mb-4">
                     <div className="flex mx-2 items-center font-bold uppercase"> gateway: </div>
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={gw1} onChange={(e) => setGw1(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={gw2} onChange={(e) => setGw2(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={gw3} onChange={(e) => setGw3(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={gw4} onChange={(e) => setGw4(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={gw1} onChange={(e) => setGw1(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={gw2} onChange={(e) => setGw2(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={gw3} onChange={(e) => setGw3(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={gw4} onChange={(e) => setGw4(e.target.value)} />} />
                 </div>
                 <div className="grid grid-cols-5 -mb-4">
                     <div className="flex mx-2 items-center font-bold uppercase"> mac: </div>
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={mac1} onChange={(e) => setMac1(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={mac2} onChange={(e) => setMac2(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={mac3} onChange={(e) => setMac3(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={mac1} onChange={(e) => setMac1(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={mac2} onChange={(e) => setMac2(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={mac3} onChange={(e) => setMac3(e.target.value)} />} />
                 </div>
                 <div className="grid grid-cols-5 gap-2">
                     <NetworkFormItem />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={mac4} onChange={(e) => setMac4(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={mac5} onChange={(e) => setMac5(e.target.value)} />} />
-                    <NetworkFormItem value={<Input className={"rounded-md"} value={mac6} onChange={(e) => setMac6(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={mac4} onChange={(e) => setMac4(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={mac5} onChange={(e) => setMac5(e.target.value)} />} />
+                    <NetworkFormItem value={<Input className={"rounded-md cursor-default"} readOnly value={mac6} onChange={(e) => setMac6(e.target.value)} />} />
                 </div>
             </div>
         </div>

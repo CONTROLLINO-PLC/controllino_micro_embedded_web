@@ -8,7 +8,8 @@ let y = 0;
 let data = {};
 const status = [ { "status" : 0, "crc32":"9ec4ace4", "size": 84520, "timestamp": "24/09/2023, 18:01:04" } ,
 { "status" : 1, "crc32":"0", "size": "0", "timestamp": '01/01/1970, 01:00:00' }
-] 
+];
+const terminal = 'recived from the device' ; 
 const modbus = {
     "enable": true,
     "interval": 500,
@@ -75,6 +76,22 @@ const serverREST = http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
     }
+    else if(req.method === 'GET' && parsedUrl.pathname === '/api/outputs/settings') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            sliders: [50,2,3,4,5,56,17,8],
+            checkboxs: [false, false, true, true, false, false, true, true],
+            limits: [0.5,2,3,2,1,0.56,1.7,2.8],
+            switchs: [false, false, true, true, false, false, true, true],
+        }));
+    }
+    else if(req.method === 'GET' && parsedUrl.pathname === '/api/inputs/settings') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            readings: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            thresholds: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        }));
+    }
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/modbus/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end('ok');
@@ -87,30 +104,25 @@ const serverREST = http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
     }
-    // new
-    else if(req.method === 'GET' && parsedUrl.pathname === '/api/outputs') {
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-            sliders: [50,2,3,4,5,56,17,8],
-            checkboxs: [false, false, true, true, false, false, true, true],
-            currentLimits: [500,2200,3000,2000,1000,560,1700,2800],
-            switchs: [false, false, true, true, false, false, true, true],
-        }));
-    }
-    else if(req.method === 'GET' && parsedUrl.pathname === '/api/inputs') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-            inputs: [[0,0],[25,25],[0,25],[0,25],[30,30],[20,20],[10,10],[18,18]],
-        }));
+        res.end(JSON.stringify({status: 'ok'}));
     }
     else if(req.method === 'POST' && parsedUrl.pathname === '/api/outputs'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
-    
     }
-    else if(req.method === 'POST' && parsedUrl.pathname === '/api/inputs'){
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/inputs/settings'){
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({status: 'ok'}));
+    }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/terminal'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify('recived from device'));
+    }
+    else if(req.method === 'POST' && parsedUrl.pathname === '/api/terminal/settings'){
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify('recived from device'));
     }
     else {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -122,9 +134,9 @@ serverREST.listen(port, () => {
     console.log('Server running');
 });
 
-let serverWS = ws.createServer(function (conn) {
+ws.createServer(function (conn) {
     console.log('connection established')
-    conn.on('error', (err) => {
+    conn.on('error', () => {
     });
     conn.on('close', () => {
     });
@@ -132,16 +144,18 @@ let serverWS = ws.createServer(function (conn) {
         try {
             console.log(JSON.parse(str));
         } catch (error) {
+            console.log(error);
         }
     });
 
     setInterval(() => {
         x = generate(-50.012, 180.156);
         y = x + 13.031;
-        data = {"tmcu": x,"vsupply": y,"tsens": x};
+        data = {"tmcu": x,"vsupply": y,"tsens": x, 'rx': `${terminal} : ${Math.random()}`};
             try {
                 conn.send(JSON.stringify(data));
             } catch (error) {
+                console.log(error);
             }
     }, 200);
 }).listen(80) + "/ws";

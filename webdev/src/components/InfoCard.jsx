@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export function InfoCard(props) {
   return (
     <div
@@ -8,3 +10,8 @@ export function InfoCard(props) {
     </div>
   )
 }
+
+InfoCard.propTypes = {
+  icon: PropTypes.element.isRequired,
+  text: PropTypes.string.isRequired,
+};

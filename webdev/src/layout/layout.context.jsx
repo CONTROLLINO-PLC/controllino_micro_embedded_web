@@ -1,177 +1,234 @@
-import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 
 // Socket connection management
-const socket = new WebSocket(`ws://${window.location.hostname}:80/ws`);
+const socket = new WebSocket( `ws://${ window.location.hostname }:80/ws` );
 
-export const LayoutContext = createContext({
+export const LayoutContext = createContext( {
   login: false,
-  vsupply: 0, setVsupply: () => { },
-  tmcu: 0, setTmcu: () => { },
+  heartbit: false, setHeartbit: () => { },
+  vsupply: 0.0, setVsupply: () => { },
+  tmcu: 0.0, setTmcu: () => { },
+  tsens: 0.0, setTsens: () => { },
   notification: true, setNotification: () => { },
   alerts: {
     tempAlert: '', setTempAlert: () => { },
-    modbusAlertCoil1: '', setModbusAlertCoil1: () => { },
-    modbusAlertCoil2: '', setModbusAlertCoil2: () => { },
-    modbusAlertRate: '', setModbusAlertRate: () => { },
     tempFormAlert: '', setTempFormAlert: () => { },
     currentLimitAlert: '', setCurrentLimitAlert: () => { },
-    inputAlert: '', setInputAlert: () => {}
+    thresholdAlert: '', setThresholdAlert: () => { }
   },
-  sliders: [0, 0, 0, 0, 0, 0, 0, 0], setSlider: () => { },
-  clickSetInput: () => { },
-  currentLimits: [0, 0, 0, 0, 0, 0, 0, 0], setCurrentLimit: () => { },
-  checkboxs: [false, false, false, false, false, false, false, false], setCheckbox: () => { },
-  switchs: [false, false, false, false, false, false, false, false], setSwitch: () => { },
-  inputs: [[[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]], setInput: () => { },
-})
+  sliders: [ 0, 0, 0, 0, 0, 0, 0, 0 ], setSlider: () => { },
+  serials: [], setSerials: () => { }, setSerial: () => { },
+  serialTerminator: 0, setSerialTerminator: () => { },
+  checkboxs: [ false, false, false, false, false, false, false, false ], setCheckbox: () => { },
+  switchs: [ false, false, false, false, false, false, false, false ], setSwitch: () => { },
+  currentLimits: [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ], setCurrentLimit: () => { },
+  inputs: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], setInputs: () => { },
+  readings: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], setReadings: () => { },
+  thresholds: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], setThresholds: () => { },
+  clickSetThreshold: () => { },
+} )
 
-export function LayoutProvider(props) {
-  const [login, setLogin] = useState(false)
-  const [vsupply, setVsupply] = useState(0)
-  const [tmcu, setTmcu] = useState(0)
-  const [sliders, setSliders] = useState([0, 0, 0, 0, 0, 0, 0, 0])
-  const [currentLimits, setCurrentLimits] = useState([0, 0, 0, 0, 0, 0, 0, 0])
-  const [inputs, setInputs] = useState([[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]])
-  const [switchs, setSwithcs] = useState([false, false, false, false, false, false, false, false])
-  const [checkboxs, setCheckboxs] = useState([false, false, false, false, false, false, false, false])
+export function LayoutProvider ( props ) {
+  const [ login, setLogin ] = useState( false )
+  const [ heartbit, setHeartbit ] = useState( false )
+  const [ vsupply, setVsupply ] = useState( 0.0 )
+  const [ tmcu, setTmcu ] = useState( 0.0 )
+  const [ tsens, setTsens ] = useState( 0.0 )
+  const [ serials, setSerials ] = useState( [] )
+  const [ serialTerminator, setSerialTerminator ] = useState( 0 )
+  const [ sliders, setSliders ] = useState( [ 0, 0, 0, 0, 0, 0, 0, 0 ] )
+  const [ currentLimits, setCurrentLimits ] = useState( [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] )
+  const [ inputs, setInputs ] = useState( [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] )
+  const [ readings, setReadings ] = useState( [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] )
+  const [ thresholds, setThresholds ] = useState( [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] )
+  const [ switchs, setSwithcs ] = useState( [ false, false, false, false, false, false, false, false ] )
+  const [ checkboxs, setCheckboxs ] = useState( [ false, false, false, false, false, false, false, false ] )
+  const [ notification, setNotification ] = useState( false )
+  const [ tempAlert, setTempAlert ] = useState( '' )
+  const [ tempFormAlert, setTempFormAlert ] = useState( '' )
+  const [ currentLimitAlert, setCurrentLimitAlert ] = useState( '' )
+  const [ thresholdAlert, setThresholdAlert ] = useState( '' )
 
-  const [notification, setNotification] = useState(false)
+  const doHeartbit = () => {setHeartbit( !heartbit )}
 
-  const [tempAlert, setTempAlert] = useState('')
-  const [modbusAlertCoil1, setModbusAlertCoil1] = useState('')
-  const [modbusAlertCoil2, setModbusAlertCoil2] = useState('')
-  const [modbusAlertRate, setModbusAlertRate] = useState('')
-  const [tempFormAlert, setTempFormAlert] = useState('')
-  const [currentLimitAlert, setCurrentLimitAlert] = useState('')
-  const [inputAlert, setInputAlert] = useState('')
-
-  const setSlider = async (index, value) => {
-    fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
+  const setSlider = async ( index, value ) => {
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
       method: 'POST',
-      body: { id: `sliders-${index}`, value }
-    }).then(i => i.json()).then((() => {
-      setSliders(i => i.map((v, i) => i === index ? value : v))
-    }))
+      body: JSON.stringify( { "analog": { "index": index, "value": value } } )
+    } ).then( ( () => {
+      doHeartbit()
+      setSliders( i => i.map( ( v, i ) => i === index ? value : v ) )
+    } ) )
   }
-  const setCurrentLimit = async (index, value) => {
-    if (value >= 500 && value <= 3000) {
-      await fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
-        method: 'POST',
-        body: { id: `current_limits-${index}`, value }
-      }).then(j => j.json())
+
+  const setCurrentLimit = async ( index, value ) => {
+    if ( value >= 0.5 && value <= 3 ) {
+      setCurrentLimits( i => i.map( ( v, i ) => i === index ? value : v) )
     }
-    setCurrentLimits(i => i.map((v, i) => i === index ? value : v))
   }
 
-  const setInput = (index, innerIndex, value) => {
-    setInputs(i => i.map((v, i) => i === index ? (innerIndex === 0 ? [value, v[1]] : [v[0], +value ]) : v))
-  }
-  const setCheckbox = (index, value) => {
-    fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
-      method: 'POST',
-      body: { id: `checkboxs-${index}`, value }
-    }).then(i => i.json()).then((() => {
-      setCheckboxs(i => i.map((v, i) => i === index ? value : v))
-    }))
-  }
-
-  const clickSetInput = (index, value) => {
-    if (value >= 0 && value <= 30)
-      return fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/inputs`, {
+  const clickSetCurrentLimit = async ( index, value ) => {
+    if ( value >= 0.5 && value <= 3 ) {
+      await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs/settings`, {
         method: 'POST',
-        body: { id: `digital_thershold-${index}`, value }
-      }).then(i => i.json())
+        body: JSON.stringify( { "limit": { "index": index, "value": value } } )
+      } ).then( () => { doHeartbit() } )
+    }
   }
 
-  const setSwitch = (index, value) => {
-    fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
+  const setThreshold = ( index, value ) => {
+    if ( value >= 0 && value <= 30 ) {
+      setThresholds( i => i.map( ( v, i ) => i === index ? value : v ) )
+    }
+  }
+
+  const setCheckbox = ( index, value ) => {
+    setCheckboxs( i => i.map( ( v, i ) => i === index ? value : v ) )
+  }
+
+  const clickSetThreshold = ( index, value ) => {
+    if ( value >= 0 && value <= 30 ) {
+      return fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings`, {
+        method: 'POST',
+        body: JSON.stringify( { "threshold": { "index": index, "value": value } } )
+      } ).then( ( () => doHeartbit() ) )
+    }
+  }
+
+  const setSwitch = ( index, value ) => {
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
       method: 'POST',
-      body: { id: `switchs-${index}`, value }
-    }).then(i => i.json()).then((() => {
-      setSwithcs(i => i.map((v, i) => i === index ? value : v))
-      setSliders(i => i.map((v, i) => i === index ? (value ? 100 : 0) : v))
-      if (checkboxs[index]) return;
-      setTimeout(() => {
-        fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`, {
+      body: JSON.stringify( { "digital": { "index": index, "value": value } } )
+    } ).then( ( () => {
+      doHeartbit()
+      setSwithcs( i => i.map( ( v, i ) => i === index ? value : v ) )
+      setSliders( i => i.map( ( v, i ) => i === index ? ( value ? 100 : 0 ) : v ) )
+      if ( checkboxs[ index ] || !value ) return;
+      setTimeout( () => {
+        value = !value
+        fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/outputs`, {
           method: 'POST',
-          body: { id: `switchs-${index}`, value }
-        }).then(i => i.json()).then((() => {
-          setSwithcs(i => i.map((v, i) => i === index ? false : v))
-          setSliders(i => i.map((v, i) => i === index ? 0 : v))
-        }))
-      }, 500)
-    }))
+          body: JSON.stringify( { "digital": { "index": index, "value": value } } )
+        } ).then( ( () => {
+          doHeartbit()
+          setSwithcs( i => i.map( ( v, i ) => i === index ? value : v ) )
+          setSliders( i => i.map( ( v, i ) => i === index ? ( value ? 100 : 0 ) : v ) )
+        } ) )
+      }, 300 )
+    } ) )
   }
 
-  socket.onmessage = useCallback((evt) => {
-    if (!evt.data) return;
-    if (evt.data === 'h') return; // Heartbeat ingnored
-    const now = new Date()
-    const parsedData = JSON.parse(evt.data);
-    setTmcu(parsedData.tmcu)
-    setVsupply(parsedData.vsupply)
-  }, []);
-
-  const handleSetLogin = (value) => {
-    window.localStorage.setItem('login', value ? 'true' : 'false')
-    setLogin(value)
+  const setSerial = async ( message ) => {
+    // TODO: hacer la peticion post con los parametros adecuados
+    await fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/terminal`, {
+      method: 'POST',
+      body: JSON.stringify( { 'tx': message } )
+    } ).then( ( () => {
+      doHeartbit()
+      setSerials( i => ( [ ...i, `send<:::>${ message }` ] ) )
+    } ) )
   }
 
-  useEffect(() => {
-    setLogin(window.localStorage.getItem('login') === 'true')
+  const selectSerialTerminator = ( value ) => {
+    return fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/terminal/settings`, {
+      method: 'POST',
+      body: JSON.stringify( { "terminator": value } )
+    } ).then( ( () => {
+      doHeartbit()
+      setSerialTerminator( value )
+    } ) )
+  }
+
+  socket.onmessage = useCallback( ( evt ) => {
+    setHeartbit( !heartbit )
+    if ( !evt.data ) return;
+    if ( evt.data === 'h' ) return; // Heartbeat ingnored
+    // const now = new Date()
+    const parsedData = JSON.parse( evt.data );
+
+    if ( parsedData.rx ) {
+      if ( parsedData.rx.length ) {
+        setSerials( i => ( [ ...i, `recive<:::>${ parsedData.rx }` ] ) )
+      }
+    }
+
+    if ( parsedData.tmcu ) setTmcu( parsedData.tmcu )
+    if ( parsedData.vsupply ) setVsupply( parsedData.vsupply )
+    if ( parsedData.tsens ) setTsens( parsedData.tsens )
+    if ( parsedData.di ) setInputs( parsedData.di )
+    if ( parsedData.ai ) setReadings( parsedData.ai )
+  }, [ heartbit ] );
+
+  const handleSetLogin = ( value ) => {
+    window.localStorage.setItem( 'login', value ? 'true' : 'false' )
+    setLogin( value )
+  }
+
+  useEffect( () => {
+    setLogin( window.localStorage.getItem( 'login' ) === 'true' )
     socket.onclose = () => {
-      console.log('Conexión cerrada. Intentando reconectar en 5 segundos...');
-      setTimeout(() => {
-        console.log('5 segundos...');
-      }, 5000);
+      console.log( 'Conexión cerrada. Intentando reconectar en 5 segundos...' );
+      setTimeout( () => {
+        console.log( '5 segundos...' );
+      }, 5000 );
     };
-    // TODO: Cambiado esto
-    fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs`).then(i => i.json()).then((data) => {
-      if (data.sliders) setSliders(data.sliders)
-      if (data.currentLimits) setCurrentLimits(data.currentLimits)
-      if (data.checkboxs) setCheckboxs(data.checkboxs)
-      if (data.switchs) setSwithcs(data.switchs)
-    })
-    fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/inputs`).then(i => i.json()).then((data) => {
-      if (data.inputs) setInputs(data.inputs)
-    })
-  }, []);
+    
+    fetch(`http://${import.meta.env.VITE_IP}:${import.meta.env.VITE_PORT}/api/outputs/settings`)
+    .then(i => i.json())
+      .then( ( data ) => {
+        if (data.limits) {
+          const formattedLimits = data.limits.map(limit => parseFloat(limit).toFixed(3));
+          setCurrentLimits(formattedLimits);
+      }
+    });
+    fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/inputs/settings` )
+      .then( i => i.json() ).then( ( data ) => {
+        if ( data.thresholds ){
+          const formattedThresholds = data.thresholds.map(thresholds => parseFloat(thresholds).toFixed(5));
+          setThresholds(formattedThresholds);
+        }
+    } )
+  }, [] );
 
-  useEffect(() => {
-    const hasError = currentLimits.find(i => (i < 500 || i > 3000))
-    if (hasError) setCurrentLimitAlert('Current range can only be 0.5 to 3A!')
-    else setCurrentLimitAlert('')
-  }, [currentLimits])
+  useEffect( () => {
+    const hasError = currentLimits.find( i => ( i < 0.5 || i > 3 ) )
+    if ( hasError ) setCurrentLimitAlert( 'Current range can only be 0.5 to 3A!' )
+    else setCurrentLimitAlert( '' )
+  }, [ currentLimits ] )
 
-  useEffect(() => {
-    const hasError = inputs.find(i => (i[1] < 0 || i[1] > 30))
-    if (hasError) setInputAlert('Input range can only be 0 to 30ma!')
-    else setInputAlert('')
-  }, [inputs])
+  useEffect( () => {
+    const hasError = thresholds.find( i => ( i < 0 || i > 30 ) )
+    if ( hasError ) setThresholdAlert( 'Input range can only be 0 to 30V!' )
+    else setThresholdAlert( '' )
+  }, [ thresholds ] )
 
   return (
-    <LayoutContext.Provider value={{
+    <LayoutContext.Provider value={ {
       login, setLogin: handleSetLogin,
+      heartbit,
       vsupply, setVsupply,
       tmcu, setTmcu,
+      tsens, setTsens,
       notification, setNotification,
       alerts: {
         tempAlert, setTempAlert,
-        modbusAlertCoil1, setModbusAlertCoil1,
-        modbusAlertCoil2, setModbusAlertCoil2,
-        modbusAlertRate, setModbusAlertRate,
         tempFormAlert, setTempFormAlert,
         currentLimitAlert, setCurrentLimitAlert,
-        inputAlert, setInputAlert,
+        thresholdAlert, setThresholdAlert,
       },
+      serials, setSerials, setSerial,
+      serialTerminator, selectSerialTerminator,
       sliders, setSlider,
       checkboxs, setCheckbox,
       switchs, setSwitch,
-      inputs, setInput,
       currentLimits, setCurrentLimit,
-      clickSetInput,
-    }}>
-      {props.children}
+      clickSetCurrentLimit,
+      inputs, setInputs,
+      readings, setReadings,
+      thresholds, setThreshold,
+      clickSetThreshold,
+    } }>
+      { props.children }
     </LayoutContext.Provider>
   )
 } 

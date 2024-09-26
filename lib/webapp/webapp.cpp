@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <SPI.h>
+#
 #include "webapp.h"
 
 /**
@@ -14,9 +14,6 @@
  *
  * \author Pedro Marquez @pmmarquez, CONTROLLINO Firmware Team
  */
-
-/* Unique board id */
-uint8_t* id;
 
 // Time management
 static uint64_t s_boot_timestamp = 0;  // Updated by SNTP
@@ -112,6 +109,57 @@ static void handle_device_reset(struct mg_connection* c) {
   mg_timer_add(c->mgr, 500, 0, (void (*)(void*)) mg_device_reset, NULL);
 }
 
+extern size_t print_network_settings(void (*out)(char, void*), void* ptr, va_list* ap);
+
+static void handle_network_settings(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "%M\n", print_network_settings);
+}
+
+extern size_t print_outputs_settings(void (*out)(char, void*), void* ptr, va_list* ap);
+extern void set_outputs_settings(struct mg_str* body);
+
+static void handle_outputs_settings_get(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "%M\n", print_outputs_settings);
+}
+
+static void handle_outputs_settings_set(struct mg_connection* c, struct mg_str* body) {
+  set_outputs_settings(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
+extern void set_output(struct mg_str* body);
+
+static void handle_output_set(struct mg_connection* c, struct mg_str* body) {
+  set_output(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
+extern size_t print_inputs_settings(void (*out)(char, void*), void* ptr, va_list* ap);
+extern void set_inputs_settings(struct mg_str* body);
+
+static void handle_inputs_settings_get(struct mg_connection* c) {
+  mg_http_reply(c, 200, s_json_header, "%M\n", print_inputs_settings);
+}
+
+static void handle_inputs_settings_set(struct mg_connection* c, struct mg_str* body) {
+  set_inputs_settings(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
+extern void set_terminal_settings(struct mg_str* body);
+
+static void handle_terminal_settings_set(struct mg_connection* c, struct mg_str* body) {
+  set_terminal_settings(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
+extern void terminal_tx(struct mg_str* body);
+
+static void handle_terminal_tx(struct mg_connection* c, struct mg_str* body) {
+  terminal_tx(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
 // HTTP request handler function
 static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
   if (ev == MG_EV_HTTP_MSG) {
@@ -138,6 +186,40 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
     }
     else if (mg_http_match_uri(hm, "/api/device/reset")) {
       handle_device_reset(c);
+    }
+    else if (mg_http_match_uri(hm, "/api/network/settings")) {
+      handle_network_settings(c);
+    }
+    else if (mg_http_match_uri(hm, "/api/outputs/settings")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_outputs_settings_set(c, &(hm->body));
+      }
+      else {
+        handle_outputs_settings_get(c);
+      }
+    }
+    else if (mg_http_match_uri(hm, "/api/outputs")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_output_set(c, &(hm->body));
+      }
+    }
+    else if (mg_http_match_uri(hm, "/api/inputs/settings")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_inputs_settings_set(c, &(hm->body));
+      }
+      else {
+        handle_inputs_settings_get(c);
+      }
+    }
+    else if (mg_http_match_uri(hm, "/api/terminal/settings")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_terminal_settings_set(c, &(hm->body));
+      }
+    }
+    else if (mg_http_match_uri(hm, "/api/terminal")) {
+      if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
+        handle_terminal_tx(c, &(hm->body));
+      }
     }
     else {
       // handle /home as /
@@ -178,19 +260,7 @@ void webAppInit(struct mg_mgr* mgr, mg_tcpip_if* mif)
   // Bootstrap OTA
   mg_ota_boot();
 
-  // Get unique board id and set MAC address
-  pico_unique_board_id_t board_id;
-  pico_get_unique_board_id(&board_id);
-  id = board_id.id;
-  mif->mac[0] = 0x02;
-  mif->mac[1] = id[3];
-  mif->mac[2] = id[4];
-  mif->mac[3] = id[5];
-  mif->mac[4] = id[6];
-  mif->mac[5] = id[7];
-
-  // Set logging function to a serial print
-  mg_log_set_fn([](char ch, void*) { Serial.print(ch); }, NULL);
+  // Initialize Mongoose
   mg_mgr_init(mgr);
 
   // Start TCP/IP stack
