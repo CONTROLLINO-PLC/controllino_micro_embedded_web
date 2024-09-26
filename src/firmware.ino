@@ -37,7 +37,6 @@ struct mg_tcpip_if mif = {
 #include <CAN.h>
 #endif
 
-// #define LED_BLINK // Comment this line to disable LED blink
 #ifdef LED_BLINK
 #define LED_BLINK_INTERVAL 1000 // ms
 uint32_t ledBlinkTimer = 0;
@@ -337,7 +336,7 @@ void set_output(struct mg_str* body) {
   }
 }
 
-void set_serial_settings(struct mg_str* body) {
+void set_terminal_settings(struct mg_str* body) {
   double term;
   if (mg_json_get_num(*body, "$.terminator", &term)) {
     serialTerminator = (serialTerm)term;

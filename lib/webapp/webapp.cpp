@@ -149,17 +149,17 @@ static void handle_inputs_settings_set(struct mg_connection* c, struct mg_str* b
   mg_http_reply(c, 200, s_json_header, "ok\n");
 }
 
+extern void set_terminal_settings(struct mg_str* body);
+
+static void handle_terminal_settings_set(struct mg_connection* c, struct mg_str* body) {
+  set_terminal_settings(body);
+  mg_http_reply(c, 200, s_json_header, "ok\n");
+}
+
 extern void terminal_tx(struct mg_str* body);
 
 static void handle_terminal_tx(struct mg_connection* c, struct mg_str* body) {
   terminal_tx(body);
-  mg_http_reply(c, 200, s_json_header, "ok\n");
-}
-
-extern void set_serial_settings(struct mg_str* body);
-
-static void handle_serial_settings_set(struct mg_connection* c, struct mg_str* body) {
-  set_serial_settings(body);
   mg_http_reply(c, 200, s_json_header, "ok\n");
 }
 
@@ -214,9 +214,9 @@ static void handle_http(struct mg_connection *c, int ev, void *ev_data, void *fn
         handle_inputs_settings_get(c);
       }
     }
-    else if (mg_http_match_uri(hm, "/api/serial/settings")) {
+    else if (mg_http_match_uri(hm, "/api/terminal/settings")) {
       if (mg_strcmp(hm->method, mg_str_s("POST")) == 0) {
-        handle_serial_settings_set(c, &(hm->body));
+        handle_terminal_settings_set(c, &(hm->body));
       }
     }
     else if (mg_http_match_uri(hm, "/api/terminal")) {

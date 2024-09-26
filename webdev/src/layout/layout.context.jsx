@@ -130,7 +130,7 @@ export function LayoutProvider ( props ) {
   }
 
   const selectSerialTerminator = ( value ) => {
-    return fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/serial/settings`, {
+    return fetch( `http://${ import.meta.env.VITE_IP }:${ import.meta.env.VITE_PORT }/api/terminal/settings`, {
       method: 'POST',
       body: JSON.stringify( { "terminator": value } )
     } ).then( ( () => {
