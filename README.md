@@ -44,11 +44,11 @@ Here there are some .bin files to test the OTA feature:
 
 - Controllino MICRO RS485:
   - User led blink 1s <https://github.com/CONTROLLINO-PLC/micro_embedded_web/releases/download/global/web_micro_rs485_blink_1s.bin>
-  - User led blink 200ms <https://github.com/CONTROLLINO-PLC/micro_embedded_web/releases/download/global/web_micro_rs485_blink_200ms.bin>
+  - Normal no user led blink <https://github.com/CONTROLLINO-PLC/micro_embedded_web/releases/download/global/web_micro_rs485.bin>
 
 - Controllino MICRO CAN:
   - User led blink 1s <https://github.com/CONTROLLINO-PLC/micro_embedded_web/releases/download/global/web_micro_can_blink_1s.bin>
-  - User led blink 200ms <https://github.com/CONTROLLINO-PLC/micro_embedded_web/releases/download/global/web_micro_can_blink_200ms.bin>
+  - Normal no user led blink <https://github.com/CONTROLLINO-PLC/micro_embedded_web/releases/download/global/web_micro_can.bin>
 
 ## Tools and technologies used
 
