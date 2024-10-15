@@ -5,7 +5,7 @@
  */
 
 #ifndef NATIVE_ENV // Avoid the folowing part on native testing
-#include "controllino_wiring.h"
+#include "wiring.h"
  
 #include <CoreMutex.h>
 #include <hardware/gpio.h>
@@ -15,15 +15,16 @@
 #include <hardware/adc.h>
 
 /* Controllino analog API */
-int analogRead(ControllinoRp2040Pin* pin)
+
+int analogRead(ControllinoPin* pin)
 {
     int adcValue = 0;
     switch (pin->getType())
     {
-    case ControllinoRp2040Pin::RP2040_PIN:
+    case ControllinoPin::RP2040_PIN:
         adcValue = analogRead(pin->getPin());
         break;
-    case ControllinoRp2040Pin::MCP3564_PIN: // mcp3564.h
+    case ControllinoPin::MCP3564_PIN: // mcp3564.h
         mcp3564_mux_pos_t chn;
         switch (pin->getPin())
         {
@@ -52,8 +53,8 @@ int analogRead(ControllinoRp2040Pin* pin)
             chn = MCP3564_MUX_VIN_POS_CH0;
             break;
         }
-        // 500 us delay for 256 over sample rate
-        mcp3564_read_adc_mux(dev_mcp3564, (uint32_t*)&adcValue, chn, MCP3564_MUX_VIN_NEG_VREF_EXT_MINUS, 500);
+        // 300 us delay for 128 over sample rate
+        mcp3564_read_adc_mux(dev_mcp3564, (uint32_t*)&adcValue, chn, MCP3564_MUX_VIN_NEG_VREF_EXT_MINUS, 300);
         break;
     default:
         // Other pin types are digital or analog output only
@@ -62,20 +63,22 @@ int analogRead(ControllinoRp2040Pin* pin)
     return adcValue;
 }
 
-void analogWrite(ControllinoRp2040Pin* pin, int value)
+static uint32_t analogScale = 255;
+
+void analogWrite(ControllinoPin* pin, int value)
 {
+    uint pulseWid;
     switch (pin->getType())
     {
-    case ControllinoRp2040Pin::RP2040_PIN:
+    case ControllinoPin::RP2040_PIN:
         analogWrite(pin->getPin(), value);
         break;
-    case ControllinoRp2040Pin::CY8C9520_PIN: // cy8c9520.h
+    case ControllinoPin::CY8C9520_PIN: // cy8c9520.h
         if (pin->getMode() == OUTPUT) {
             cy8c9520_pwm_cfg_t pwmCfg;
             float dummyFreq;
             float dummyDutyCyc;
-            uint8_t pulseWid;
-            pulseWid = (uint8_t)value & 0xFF; // 8 bit resolution
+            pulseWid = map(value, 0, analogScale, 0, 0xFF); // 8 bit resolution maximum
             if (pulseWid < 0xFF) {
                 switch (pin->getPin()) // CY8C9520 datasheet
                 {
@@ -121,8 +124,9 @@ void analogWrite(ControllinoRp2040Pin* pin, int value)
             cy8c9520_write_pin(dev_cy8c9520, (int)pin->getPin(), 1); // Enable output
         }
         break;
-    case ControllinoRp2040Pin::AD5664_PIN: // ad5664.h
-        ad5664_write_input_reg(dev_ad5664, (ad5664_ch_addr_t)pin->getPin(), ((uint16_t)value & 0xFFFF)); // 16 bits resolution
+    case ControllinoPin::AD5664_PIN: // ad5664.h
+        pulseWid = map(value, 0, analogScale, 0, 0xFFFF); // 16 bit resolution maximum
+        ad5664_write_input_reg(dev_ad5664, (ad5664_ch_addr_t)pin->getPin(), pulseWid); // 16 bits resolution
         ad5664_update_dac_reg(dev_ad5664, (ad5664_ch_addr_t)pin->getPin());
         break;
     default:
@@ -130,19 +134,17 @@ void analogWrite(ControllinoRp2040Pin* pin, int value)
         break;
     }
 }
- 
+
 /* Modifications of wiring_analog.cpp on arduino-pico  */
 void __clearADCPin(pin_size_t p);
 
-static uint32_t analogScale = 255;
+auto_init_mutex(_dacMutex);
 static uint32_t analogFreq = 1000;
 static uint32_t pwmInitted = 0;
 static bool scaleInitted = false;
 static bool adcInitted = false;
 static uint16_t analogWritePseudoScale = 1;
 static uint16_t analogWriteSlowScale = 1;
-
-auto_init_mutex(_dacMutex);
 
 extern "C" void analogWriteFreq(uint32_t freq) {
     if (freq == analogFreq) {
@@ -233,13 +235,13 @@ extern "C" void analogWrite(pin_size_t pin, int val) {
         gpio_set_function(pin, GPIO_FUNC_PWM);
         pwm_set_gpio_level(pin, val);
     }
-    else if (getControllinoRp2040Pin(pin) != nullptr) {
-        analogWrite(getControllinoRp2040Pin(pin), val);
+    else if (getControllinoPin(pin) != nullptr) {
+        analogWrite(getControllinoPin(pin), val);
     }
 }
 
 auto_init_mutex(_adcMutex);
-static uint8_t _readBits = 10;
+uint8_t _readBits = 24; // Default to 24 bits resolution
 static uint8_t _lastADCMux = 0;
 static uint32_t _adcGPIOInit = 0;
 
@@ -272,8 +274,8 @@ extern "C" int analogRead(pin_size_t pin) {
         }
         return (_readBits < 12) ? adc_read() >> (12 - _readBits) : adc_read() << (_readBits - 12);
     }
-    else if (getControllinoRp2040Pin(pin) != nullptr) {
-        return analogRead(getControllinoRp2040Pin(pin));
+    else if (getControllinoPin(pin) != nullptr) {
+        return (_readBits < 23) ? analogRead(getControllinoPin(pin)) >> (23 - _readBits) : analogRead(getControllinoPin(pin)) << (_readBits - 23); // Max 23 bits resolution
     }
     return 0;
 }

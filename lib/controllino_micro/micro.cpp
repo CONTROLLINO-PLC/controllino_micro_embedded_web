@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
  
-#include "controllino_wiring.h"
-#include "controllino_diag.h"
+#include "wiring.h"
+#include "diag.h"
  
 /* Peripherals interfaces */
 cy8c9520_t*     dev_cy8c9520 =  nullptr;
@@ -68,41 +68,27 @@ void initVariant()
 
     // ADC analog inputs
     dev_mcp3564 = (mcp3564_t*)malloc(sizeof(mcp3564_t));
-    pinMode(_MCP3564_CS_PIN, OUTPUT);
     mcp3564_cfg_t mcp3564_cfg;
     mcp3564_set_default_cfg(&mcp3564_cfg);
+    mcp3564_cfg.cs_pin = _MCP3564_CS_PIN;
     mcp3564_init(dev_mcp3564, &mcp3564_cfg);
+}
+ 
+/* Pin definitions for ControllinoPin API */
+ControllinoPin* _CONTROLLINO_MICRO_AI0 = new ControllinoPin(MCP3564_CH_CH0, ControllinoPin::MCP3564_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_AI1 = new ControllinoPin(MCP3564_CH_CH1, ControllinoPin::MCP3564_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_AI2 = new ControllinoPin(MCP3564_CH_CH2, ControllinoPin::MCP3564_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_AI3 = new ControllinoPin(MCP3564_CH_CH3, ControllinoPin::MCP3564_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_AI4 = new ControllinoPin(MCP3564_CH_CH4, ControllinoPin::MCP3564_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_AI5 = new ControllinoPin(MCP3564_CH_CH5, ControllinoPin::MCP3564_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_DI0 = new ControllinoPin(26u, ControllinoPin::RP2040_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_DI1 = new ControllinoPin(27u, ControllinoPin::RP2040_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_DI2 = new ControllinoPin(28u, ControllinoPin::RP2040_PIN);
+ControllinoPin* _CONTROLLINO_MICRO_DI3 = new ControllinoPin(29u, ControllinoPin::RP2040_PIN);
+ 
 
-    // Set default resolution for RP2040 ADC to 12 bits
-    analogReadResolution(12);
-}
- 
-/* SPI chip select management */
-void mcp3564_cs_select(int cs_pin) {
-    digitalWrite(_MCP3564_CS_PIN, LOW);
-}
-void mcp3564_cs_deselect(int cs_pin) {
-    digitalWrite(_MCP3564_CS_PIN, HIGH);
-}
- 
-/* These are not used but need to be defined */
-void ad5664_cs_select(int cs_pin) {}
-void ad5664_cs_deselect(int cs_pin) {}
- 
-/* Pin definitions for ControllinoRp2040Pin API */
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_AI0 = new ControllinoRp2040Pin(MCP3564_CH_CH0, ControllinoRp2040Pin::MCP3564_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_AI1 = new ControllinoRp2040Pin(MCP3564_CH_CH1, ControllinoRp2040Pin::MCP3564_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_AI2 = new ControllinoRp2040Pin(MCP3564_CH_CH2, ControllinoRp2040Pin::MCP3564_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_AI3 = new ControllinoRp2040Pin(MCP3564_CH_CH3, ControllinoRp2040Pin::MCP3564_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_AI4 = new ControllinoRp2040Pin(MCP3564_CH_CH4, ControllinoRp2040Pin::MCP3564_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_AI5 = new ControllinoRp2040Pin(MCP3564_CH_CH5, ControllinoRp2040Pin::MCP3564_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_DI0 = new ControllinoRp2040Pin(26u, ControllinoRp2040Pin::RP2040_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_DI1 = new ControllinoRp2040Pin(27u, ControllinoRp2040Pin::RP2040_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_DI2 = new ControllinoRp2040Pin(28u, ControllinoRp2040Pin::RP2040_PIN);
-ControllinoRp2040Pin* _CONTROLLINO_MICRO_DI3 = new ControllinoRp2040Pin(29u, ControllinoRp2040Pin::RP2040_PIN);
-
-/* Returns ControllinoRp2040Pin API pin or nullptr */
-ControllinoRp2040Pin* getControllinoRp2040Pin(int pin)
+/* Returns ControllinoPin API pin or nullptr */
+ControllinoPin* getControllinoPin(int pin)
 {
     switch (pin)
     {
@@ -122,13 +108,13 @@ ControllinoRp2040Pin* getControllinoRp2040Pin(int pin)
 }
  
 /* Measure power suply voltage in millivolts */
-#define POWER_SUPLY_CONVERSION_RATIO (27395.0F / 8388607.0F) /* 27395 mV for 8388607 max on the ADC */
+#define POWER_SUPLY_CONVERSION_RATIO (24000.0F / 7362700.0F) /* 24000 mV(24 V) for 7362700 on the ADC */
 int readVoltageSuply(void)
 {
     // Power suply monitoring is connected to ADC channel 6
-    // 500 us delay for 256 over sample rate
+    // 300 us delay for 128 over sample rate
     uint32_t adcValue;
-    mcp3564_read_adc_mux(dev_mcp3564, &adcValue, MCP3564_MUX_VIN_POS_CH6, MCP3564_MUX_VIN_NEG_VREF_EXT_MINUS, 500);
+    mcp3564_read_adc_mux(dev_mcp3564, &adcValue, MCP3564_MUX_VIN_POS_CH6, MCP3564_MUX_VIN_NEG_VREF_EXT_MINUS, 300);
     return (float)adcValue * POWER_SUPLY_CONVERSION_RATIO; // Convert to mV
 }
  
@@ -451,8 +437,8 @@ uint16_t getOutCurrent(uint8_t doPin)
         uint32_t adcValue;
         // Default gain is x2 needs to be changed to x1
         mcp3564_set_gain(dev_mcp3564, MCP3564_GAIN_X_1);
-        // 500 us delay for 256 over sample rate
-        mcp3564_read_adc_mux(dev_mcp3564, &adcValue, MCP3564_MUX_VIN_POS_CH7, MCP3564_MUX_VIN_NEG_VREF_EXT_MINUS, 500);
+        // 300 us delay for 128 over sample rate
+        mcp3564_read_adc_mux(dev_mcp3564, &adcValue, MCP3564_MUX_VIN_POS_CH7, MCP3564_MUX_VIN_NEG_VREF_EXT_MINUS, 300);
         // Set gain back to x2
         mcp3564_set_gain(dev_mcp3564, MCP3564_GAIN_X_2);
 

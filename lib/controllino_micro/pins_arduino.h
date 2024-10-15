@@ -12,9 +12,8 @@
  * Based on arduino-pico generic pins_arduino.h
  *
  * CONTROLLINO MICRO I/O
- * Note: All pins with value >= 32 are of course not directly connected
- * to the RP2040 and they required to be translated in the source
- * code to perform their function. Using an integer definition
+ * Note: Pins with value >= 32 are not directly connected
+ * to the RP2040 but using an integer definition
  * offers better compatibillity with Arduino API.
  *
  * \author Pedro Marquez @pmmarquez, CONTROLLINO Firmware Team
@@ -155,11 +154,11 @@ static const uint8_t A3 =           (29u);
 #ifndef RS485_DEFAULT_TX_PIN
 #define RS485_DEFAULT_TX_PIN        PIN_SERIAL2_TX
 #endif
-#ifndef RS485_DEFAULT_RE_PIN
-#define RS485_DEFAULT_RE_PIN        (10u)
+#ifndef CUSTOM_RS485_DEFAULT_RE_PIN
+#define CUSTOM_RS485_DEFAULT_RE_PIN (10u)
 #endif
-#ifndef RS485_DEFAULT_DE_PIN
-#define RS485_DEFAULT_DE_PIN        (11u)
+#ifndef CUSTOM_RS485_DEFAULT_DE_PIN
+#define CUSTOM_RS485_DEFAULT_DE_PIN (11u)
 #endif
  
 /* For Arduino ETHERNET library */
@@ -209,8 +208,8 @@ static const uint8_t CONTROLLINO_MICRO_DO5 = (22u);
 static const uint8_t CONTROLLINO_MICRO_DO6 = (23u);
 static const uint8_t CONTROLLINO_MICRO_DO7 = (24u);
  
-/* ControllinoRp2040Pin API */
-#include "controllino_wiring.h"
+/* ControllinoPin API */
+#include "wiring.h"
  
 /* Enable digital output doPin -> CONTROLLINO_MICRO_DO0...D07 */
 extern "C" void enableOut(uint8_t doPin);
@@ -219,6 +218,6 @@ extern "C" void enableOut(uint8_t doPin);
 extern "C" void disableOut(uint8_t doPin);
  
 /* Micro internal diagnosys API */
-#include "controllino_diag.h"
+#include "diag.h"
 
 

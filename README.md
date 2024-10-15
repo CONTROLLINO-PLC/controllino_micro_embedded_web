@@ -59,7 +59,6 @@ Here there are some .bin files to test the OTA feature:
 ## Internal and external dependencies description
 
 - From [controllino_rp2040_firmmware](https://github.com/CONTROLLINO-PLC/controllino_rp2040_firmware)
-  - SPI library [lib/SPI](lib/SPI) until internal the SPI code for the internal MICRO components works good with the new SPI library version on Arduino-Pico.
   - CAN modified version of Arduino CAN library (MCP2515) [lib/arduino_can](lib/arduino_can) original library [here](https://github.com/sandeepmistry/arduino-CAN)
   - Controllino MICRO variant firmware [lib/controllino_micro](lib/controllino_micro)
 - From Arduino-Pico <https://github.com/earlephilhower/arduino-pico> OTA related libraries
@@ -70,7 +69,6 @@ Here there are some .bin files to test the OTA feature:
 - Mongoose OTA and device port for Arduino-Pico [lib/mongoose_arduino_pico](lib/mongoose_arduino_pico)
 - Mongoose web server application [lib/webapp](lib/webapp) based on device dashboard example
 - External dependencies installed with PlatformIO see [platformio.ini](platformio.ini)
-  - ArduinoJson
   - ArduinoRS485
 
 ## Web development project
