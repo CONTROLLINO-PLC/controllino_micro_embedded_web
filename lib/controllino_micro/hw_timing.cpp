@@ -5,22 +5,22 @@
  */
  
 #include "hw_platform.h"
-#include "pico/time.h"
+#include "Arduino.h"
  
 /* Get system time microseconds */
 uint64_t platform_get_us(void)
 {
-    return time_us_64();
+    return micros();
 }
  
 /* Wait for specified milliseconds */
 void platform_sleep_ms(uint32_t ms)
 {
-    sleep_ms(ms);
+    delay(ms);
 }
  
 /* Wait for specified microseconds */
 void platform_sleep_us(uint64_t us)
 {
-    sleep_us(us);
+    delayMicroseconds(us);
 }
